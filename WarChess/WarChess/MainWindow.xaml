@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Project1"
         mc:Ignorable="d"
-        Title="MainWindow" Height="412.745" Width="684.804">
+        Title="MainWindow" Height="621" Width="775.131">
     <Grid>
         <!--<Button x:Name="button" Content="Button" HorizontalAlignment="Left" Margin="262,35,0,0" VerticalAlignment="Top" Width="51" Click="button_Click"/>
         <Label x:Name="label" Content="Label" HorizontalAlignment="Left" Margin="172,63,0,0" VerticalAlignment="Top" Width="34"/>
@@ -16,7 +16,16 @@
             <Label x:Name="label1" Content="0, 2&#xD;&#xA;" HorizontalAlignment="Left" Height="25" VerticalAlignment="Top" Width="30"/>-->
         </Grid>
         <Label x:Name="soldierCount" Content="2" HorizontalAlignment="Left" Height="26" Margin="112,122,0,0" VerticalAlignment="Top" Width="18"/>
-        <Button x:Name="soldier" Content="Soldier" HorizontalAlignment="Left" Margin="32,126,0,0" VerticalAlignment="Top" Width="75" Click="button1_Click"/>
+        <Button x:Name="soldier" Content="Soldier" HorizontalAlignment="Left" Margin="32,126,0,0" VerticalAlignment="Top" Width="75" Click="button1_Click">
+            <Button.Background>
+                <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+                    <GradientStop Color="#FFF3F3F3" Offset="0"/>
+                    <GradientStop Color="#FFEBEBEB" Offset="0.5"/>
+                    <GradientStop Color="#FFDDDDDD" Offset="0.5"/>
+                    <GradientStop Color="#FFCDCDCD" Offset="1"/>
+                </LinearGradientBrush>
+            </Button.Background>
+        </Button>
         <Label x:Name="archerCount" Content="2" HorizontalAlignment="Left" Height="26" Margin="112,148,0,0" VerticalAlignment="Top" Width="18"/>
         <Button x:Name="archer" Content="Archer" HorizontalAlignment="Left" Margin="32,150,0,0" VerticalAlignment="Top" Width="75" Click="button2_Click"/>
 

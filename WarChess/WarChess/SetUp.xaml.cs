@@ -28,7 +28,7 @@ namespace Project1 {
             int archers = Int32.Parse(archercount.Text);
             MainWindow mw = new MainWindow(rows,cols,soldiers,archers);
             mw.Show();
-
+			this.Close();
         }
     }
 }

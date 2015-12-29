@@ -8,11 +8,11 @@
     Title="SetUp" Height="249.125" Width="169.665">
     <Grid>
         <Button x:Name="button" Content="Create" HorizontalAlignment="Left" Margin="40,154,0,0" VerticalAlignment="Top" Width="75" Click="button_Click"/>
-        <TextBox x:Name="trows" HorizontalAlignment="Left" Height="23" Margin="18,26,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="51"/>
-        <TextBox x:Name="tcols" HorizontalAlignment="Left" Height="23" Margin="85,26,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="51"/>
-        <TextBox x:Name="soldiercount" HorizontalAlignment="Left" Height="27" Margin="85,69,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="51"/>
+        <TextBox x:Name="trows" HorizontalAlignment="Left" Height="23" Margin="18,26,0,0" TextWrapping="Wrap" Text="4" VerticalAlignment="Top" Width="51"/>
+        <TextBox x:Name="tcols" HorizontalAlignment="Left" Height="23" Margin="85,26,0,0" TextWrapping="Wrap" Text="5" VerticalAlignment="Top" Width="51"/>
+        <TextBox x:Name="soldiercount" HorizontalAlignment="Left" Height="27" Margin="85,69,0,0" TextWrapping="Wrap" Text="3" VerticalAlignment="Top" Width="51"/>
         <Label x:Name="soldierlbl" Content="Soldiers" HorizontalAlignment="Left" Height="27" Margin="18,69,0,0" VerticalAlignment="Top" Width="51"/>
-        <TextBox x:Name="archercount" HorizontalAlignment="Left" Height="27" Margin="85,98,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="51"/>
+        <TextBox x:Name="archercount" HorizontalAlignment="Left" Height="27" Margin="85,98,0,0" TextWrapping="Wrap" Text="2" VerticalAlignment="Top" Width="51"/>
         <Label x:Name="archerlbl" Content="archers" HorizontalAlignment="Left" Height="27" Margin="18,96,0,0" VerticalAlignment="Top" Width="51"/>
 
     </Grid>
