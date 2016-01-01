@@ -26,6 +26,7 @@ namespace Project1 {
             int cols = Int32.Parse(tcols.Text);
             int soldiers = Int32.Parse(soldiercount.Text);
             int archers = Int32.Parse(archercount.Text);
+			//int pointlimit = Int32.Parse(PointLimit.Text);
             MainWindow mw = new MainWindow(rows,cols,soldiers,archers);
             mw.Show();
 			this.Close();
