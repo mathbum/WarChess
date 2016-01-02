@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using WarChess.Objects;
 
 namespace Project1 {
     /// <summary>
@@ -27,7 +28,8 @@ namespace Project1 {
             int soldiers = Int32.Parse(soldiercount.Text);
             int archers = Int32.Parse(archercount.Text);
 			//int pointlimit = Int32.Parse(PointLimit.Text);
-            MainWindow mw = new MainWindow(rows,cols,soldiers,archers);
+			Game game = new Game();
+            MainWindow mw = new MainWindow(game,rows,cols,soldiers,archers);
             mw.Show();
 			this.Close();
         }

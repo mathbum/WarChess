@@ -61,7 +61,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Objects\Config.cs" />
+    <Compile Include="Config.cs" />
+    <Compile Include="Objects\Board.cs" />
+    <Compile Include="Objects\Game.cs" />
+    <Compile Include="Objects\NullUnit.cs" />
+    <Compile Include="Objects\Terrain\ShortWall.cs" />
+    <Compile Include="Objects\Terrain\TallWall.cs" />
+    <Compile Include="Objects\Terrain\Terrain.cs" />
     <Compile Include="Objects\Unit.cs" />
     <Compile Include="SetUp.xaml.cs">
       <DependentUpon>SetUp.xaml</DependentUpon>

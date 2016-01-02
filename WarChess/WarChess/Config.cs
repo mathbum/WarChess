@@ -11,6 +11,5 @@ namespace WarChess.Objects {
 			{ "Warrior",new Unit("Warrior",9,1,1,Allegiance.Good,3,5,1,1,0,0,0)}
 		};
 		public enum Allegiance { Good,Evil,Neutral};
-		public enum Phases { Priority,Move,Shoot,Fight};//need end phase?
 	}
 }

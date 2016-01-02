@@ -28,6 +28,7 @@
         </Button>
         <Label x:Name="archerCount" Content="2" HorizontalAlignment="Left" Height="26" Margin="112,148,0,0" VerticalAlignment="Top" Width="18"/>
         <Button x:Name="archer" Content="Archer" HorizontalAlignment="Left" Margin="32,150,0,0" VerticalAlignment="Top" Width="75" Click="button2_Click"/>
-
+        <Button x:Name="button" Content="End Phase" HorizontalAlignment="Left" Height="46" Margin="32,407,0,0" VerticalAlignment="Top" Width="114" Click="button_Click"/>
+        <Label x:Name="PhaseLabel" Content="SeUp" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="286,10,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
     </Grid>
 </Window>

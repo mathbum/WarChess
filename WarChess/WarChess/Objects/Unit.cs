@@ -36,5 +36,4 @@ namespace WarChess.Objects {
 		public int Will { get; set; }
 		public int Fate { get; set; }
 	}
-
 }

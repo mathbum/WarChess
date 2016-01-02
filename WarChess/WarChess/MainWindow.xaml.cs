@@ -12,24 +12,29 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using WarChess.Objects;
 
 namespace Project1 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window {
-        public MainWindow(int rows, int cols,int soldiercount,int archercount) {
+
+		private Game Game;
+		private List<List<Label>> labels;
+		private bool finishsetup = false;
+		private Button lastButton = null;
+		private Label lastLabel = null;
+		private Label lastclick = null;
+		private bool isselected = false;
+
+		public MainWindow(Game game,int rows, int cols,int soldiercount,int archercount) {
             InitializeComponent();
+			this.Game = game;
             init(rows,cols);
             soldierCount.Content = soldiercount;
             archerCount.Content = archercount;
         }
-        private List<List<Label>> labels;
-		private Boolean finishsetup = false;
-        private Button lastButton = null;
-        private Label lastLabel = null;
-		private Label lastclick = null;
-		private Boolean isselected = false;
 
 		private void init(int rows, int cols) {
             grid.Width = cols * 75;
@@ -128,12 +133,14 @@ namespace Project1 {
 					setguy(row, col);
 				}
 			} else {
-				if (lastclick != null && isselected) {
-					perfmove(row, col);
-				} else {
-					isselected = true;
-					lastclick = labels[row][col];
-					lastclick.Background = new SolidColorBrush(Colors.Black);
+				if (Game.Phase == Game.Phases.Move) {
+					if (lastclick != null && isselected) {
+						perfmove(row, col);
+					} else {
+						isselected = true;
+						lastclick = labels[row][col];
+						lastclick.Background = new SolidColorBrush(Colors.Black);
+					}
 				}
 			}
         }
@@ -144,6 +151,8 @@ namespace Project1 {
             lastLabel.Content = count - 1;
 			if(Int32.Parse(soldierCount.Content.ToString())==0 && Int32.Parse(archerCount.Content.ToString()) == 0) {
 				finishsetup = true;
+				Game.Phase = Game.Phases.Priority;//this shouldn't be hardcoded
+				PhaseLabel.Content = Game.Phase;
 			}
         }
 		private void perfmove(int row, int col) {
@@ -154,6 +163,11 @@ namespace Project1 {
 			newclick.Content = text1;
 			isselected = false;
 			lastclick.Background = null;
+		}
+
+		private void button_Click(object sender, RoutedEventArgs e) {
+			Game.NextTurn();
+			PhaseLabel.Content = Game.Phase;
 		}
 	}
 }
