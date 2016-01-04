@@ -27,13 +27,70 @@ namespace Project1 {
 		private Label lastLabel = null;
 		private Label lastclick = null;
 		private bool isselected = false;
+		private Board board = null;
+		Dictionary<Button, Label> UnitPlacementList;//should this be dict or list?
 
-		public MainWindow(Game game,int rows, int cols,int soldiercount,int archercount) {
+		public MainWindow(Game game,Board board,List<KeyValuePair<string,int>> UnitCount) {
             InitializeComponent();
 			this.Game = game;
+			this.board = board;
+			int rows = board.rows;
+			int cols = board.cols;
             init(rows,cols);
-            soldierCount.Content = soldiercount;
-            archerCount.Content = archercount;
+
+			UnitPlacementList = new Dictionary<Button, Label>();
+			ColumnDefinition gridCol = new ColumnDefinition();
+			gridCol.Width = new GridLength(75);
+			UnitGrid.ColumnDefinitions.Add(gridCol);
+			ColumnDefinition gridCol1 = new ColumnDefinition();
+			gridCol1.Width = new GridLength(45);
+			UnitGrid.ColumnDefinitions.Add(gridCol1);
+			UnitGrid.Height = UnitCount.Count * 25;
+			for (int i = 0; i < UnitCount.Count; i++) {
+				RowDefinition gridRow = new RowDefinition();
+				gridRow.Height = new GridLength(25);
+				UnitGrid.RowDefinitions.Add(gridRow);
+
+				Button b2 = new Button();
+				{
+					b2.Width = 75;
+					b2.Height = 25;
+					b2.Foreground = new SolidColorBrush(Colors.Black);
+					b2.Content = UnitCount[i].Key;
+					b2.FontSize = 10;
+					//l2.Margin = new Thickness(0, 0, 0, 0);
+					b2.VerticalAlignment = VerticalAlignment.Center;
+					b2.HorizontalAlignment = HorizontalAlignment.Center;
+					b2.VerticalContentAlignment = VerticalAlignment.Center;
+					b2.HorizontalContentAlignment = HorizontalAlignment.Center;
+				}
+				Grid.SetRow(b2, i);
+				Grid.SetColumn(b2, 0);
+				UnitGrid.Children.Add(b2);
+				b2.Click += dynClick;				
+
+				Label l2 = new Label();
+				{
+					l2.Width = 45;
+					l2.Height = 25;
+					l2.Foreground = new SolidColorBrush(Colors.White);
+					l2.Content = UnitCount[i].Value;
+					l2.FontSize = 10;
+					//l2.Margin = new Thickness(0, 0, 0, 0);
+					l2.VerticalAlignment = VerticalAlignment.Center;
+					l2.HorizontalAlignment = HorizontalAlignment.Center;
+					l2.VerticalContentAlignment = VerticalAlignment.Center;
+					l2.HorizontalContentAlignment = HorizontalAlignment.Center;
+				}
+
+				Grid.SetRow(l2, i);
+				Grid.SetColumn(l2, 1);
+				UnitGrid.Children.Add(l2);
+				UnitPlacementList[b2]= l2;
+
+			}
+			//soldierCount.Content = UnitCount[0].Value;
+            //archerCount.Content = UnitCount[1].Value;
         }
 
 		private void init(int rows, int cols) {
@@ -42,7 +99,7 @@ namespace Project1 {
             grid.HorizontalAlignment = HorizontalAlignment.Left;
             grid.VerticalAlignment = VerticalAlignment.Top;
             grid.ShowGridLines = true;
-            grid.Background = new SolidColorBrush(Colors.LightSteelBlue);
+            grid.Background = new SolidColorBrush(Colors.Blue);
 
             //grid.RowDefinitions.Clear();
             for (int i = 0; i < rows; i++) {
@@ -93,16 +150,22 @@ namespace Project1 {
             }
         }
 
-        private void button1_Click(object sender, RoutedEventArgs e) {
-            lastButton = (Button)sender;
-            //string text = b.Content.ToString();
-            lastLabel = soldierCount;
-        }
-        private void button2_Click(object sender, RoutedEventArgs e) {
-            lastButton = (Button)sender;
-            lastLabel = archerCount;
-        }
-        private void OnPreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e) {
+		private void dynClick(object sender, RoutedEventArgs e) {
+			lastButton = (Button)sender;
+			lastLabel = UnitPlacementList[lastButton];
+			//lastLabel = soldierCount;
+		}
+
+		//private void button1_Click(object sender, RoutedEventArgs e) {
+  //          lastButton = (Button)sender;
+  //          //string text = b.Content.ToString();
+  //          lastLabel = soldierCount;
+  //      }
+		//private void button2_Click(object sender, RoutedEventArgs e) {
+		//	lastButton = (Button)sender;
+		//	lastLabel = archerCount;
+		//}
+		private void OnPreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e) {
             //if (e.ClickCount == 2) { // for double-click, remove this condition if only want single click
             var point = Mouse.GetPosition(grid);
 
@@ -144,15 +207,26 @@ namespace Project1 {
 				}
 			}
         }
-        private void setguy(int row,int col) {
-            Label label = labels[row][col];
-            label.Content = lastButton.Content.ToString();
-            int count = Int32.Parse(lastLabel.Content.ToString());
-            lastLabel.Content = count - 1;
-			if(Int32.Parse(soldierCount.Content.ToString())==0 && Int32.Parse(archerCount.Content.ToString()) == 0) {
-				finishsetup = true;
-				Game.Phase = Game.Phases.Priority;//this shouldn't be hardcoded
-				PhaseLabel.Content = Game.Phase;
+        private void setguy(int row,int col) {//can't place one guy over another. if so return the guy you overwrote back to your "hand"?
+			if (Int32.Parse(lastLabel.Content.ToString()) > 0) {
+				Label label = labels[row][col];
+				label.Content = lastButton.Content.ToString();
+				int count = Int32.Parse(lastLabel.Content.ToString());
+				lastLabel.Content = count - 1;
+
+				bool isdoneplacing= true;
+				List<KeyValuePair<Button, Label>> dictList = UnitPlacementList.ToList();
+				for(int i = 0; i < dictList.Count; i++) {
+					if (Int32.Parse(dictList[i].Value.Content.ToString()) >0) {
+						isdoneplacing = false;
+					}
+				}
+				if (isdoneplacing) { 
+				//if (Int32.Parse(soldierCount.Content.ToString()) == 0 && Int32.Parse(archerCount.Content.ToString()) == 0) {
+					finishsetup = true;
+					Game.Phase = Game.Phases.Priority;//this shouldn't be hardcoded
+					PhaseLabel.Content = Game.Phase;
+				}
 			}
         }
 		private void perfmove(int row, int col) {

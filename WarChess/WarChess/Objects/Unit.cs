@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace WarChess.Objects {
-	public class Unit {
+	public class Unit{
 		public Unit(string Name,int Points,int Width,int Length,Config.Allegiance Allegiance, int Strength,int Defense,int Attack,int Wounds,int Might,int Will,int Fate) {
 			this.Name = Name;
 			this.Points = Points;
@@ -19,7 +19,8 @@ namespace WarChess.Objects {
 			this.Might = Might;
 			this.Will = Will;
 			this.Fate = Fate;
-		}
+		}//add range distace
+		//add max move dist while shootable
 
 		public string Name { get; private set; }
 		public int Points { get; private set; }

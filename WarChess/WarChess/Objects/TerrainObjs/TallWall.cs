@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WarChess.Objects.Terrain {
+namespace WarChess.Objects.TerrainObjs {
 	class TallWall : Terrain{
 		public TallWall() {
 			Standable = false;

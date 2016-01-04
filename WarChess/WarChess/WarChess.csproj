@@ -63,11 +63,12 @@
   <ItemGroup>
     <Compile Include="Config.cs" />
     <Compile Include="Objects\Board.cs" />
+    <Compile Include="Objects\Square.cs" />
     <Compile Include="Objects\Game.cs" />
     <Compile Include="Objects\NullUnit.cs" />
-    <Compile Include="Objects\Terrain\ShortWall.cs" />
-    <Compile Include="Objects\Terrain\TallWall.cs" />
-    <Compile Include="Objects\Terrain\Terrain.cs" />
+    <Compile Include="Objects\TerrainObjs\ShortWall.cs" />
+    <Compile Include="Objects\TerrainObjs\TallWall.cs" />
+    <Compile Include="Objects\TerrainObjs\Terrain.cs" />
     <Compile Include="Objects\Unit.cs" />
     <Compile Include="SetUp.xaml.cs">
       <DependentUpon>SetUp.xaml</DependentUpon>

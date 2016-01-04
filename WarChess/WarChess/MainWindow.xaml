@@ -7,27 +7,21 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="621" Width="775.131">
     <Grid>
-        <!--<Button x:Name="button" Content="Button" HorizontalAlignment="Left" Margin="262,35,0,0" VerticalAlignment="Top" Width="51" Click="button_Click"/>
-        <Label x:Name="label" Content="Label" HorizontalAlignment="Left" Margin="172,63,0,0" VerticalAlignment="Top" Width="34"/>
-        <TextBox x:Name="trows" HorizontalAlignment="Left" Height="23" Margin="172,35,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="34"/>
-        <TextBox x:Name="tcols" HorizontalAlignment="Left" Height="23" Margin="217,35,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="34"/>-->
-        <Grid x:Name="grid" HorizontalAlignment="Left" Height="258" Margin="167,100,0,0" VerticalAlignment="Top" Width="500" PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown">
-            <!--<Image x:Name="image" HorizontalAlignment="Left" Height="75" VerticalAlignment="Top" Width="100"/>
-            <Label x:Name="label1" Content="0, 2&#xD;&#xA;" HorizontalAlignment="Left" Height="25" VerticalAlignment="Top" Width="30"/>-->
-        </Grid>
-        <Label x:Name="soldierCount" Content="2" HorizontalAlignment="Left" Height="26" Margin="112,122,0,0" VerticalAlignment="Top" Width="18"/>
-        <Button x:Name="soldier" Content="Soldier" HorizontalAlignment="Left" Margin="32,126,0,0" VerticalAlignment="Top" Width="75" Click="button1_Click">
-            <Button.Background>
-                <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
-                    <GradientStop Color="#FFF3F3F3" Offset="0"/>
-                    <GradientStop Color="#FFEBEBEB" Offset="0.5"/>
-                    <GradientStop Color="#FFDDDDDD" Offset="0.5"/>
-                    <GradientStop Color="#FFCDCDCD" Offset="1"/>
-                </LinearGradientBrush>
-            </Button.Background>
-        </Button>
-        <Label x:Name="archerCount" Content="2" HorizontalAlignment="Left" Height="26" Margin="112,148,0,0" VerticalAlignment="Top" Width="18"/>
-        <Button x:Name="archer" Content="Archer" HorizontalAlignment="Left" Margin="32,150,0,0" VerticalAlignment="Top" Width="75" Click="button2_Click"/>
+        <Grid x:Name="grid" HorizontalAlignment="Left" Height="258" Margin="167,100,0,0" VerticalAlignment="Top" Width="500" PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown"/>
+        <!--<Label x:Name="soldierCount" Content="2" HorizontalAlignment="Left" Height="26" Margin="112,122,0,0" VerticalAlignment="Top" Width="18"/>
+        <Button x:Name="soldier" Content="Orc" HorizontalAlignment="Left" Margin="32,126,0,0" VerticalAlignment="Top" Width="75" Click="button1_Click"/>-->
+        <ScrollViewer Margin="12,197,605,294" Width="130" Height="100">
+            <Grid x:Name ="UnitGrid" Background="Blue"/>
+        </ScrollViewer>
+        <!--<ScrollViewer Margin="32,256,637,255">
+            <StackPanel Height="110">
+                <Button x:Name="button1" Content="Button" Width="77" Height="38"/>
+                <Button x:Name="button2" Content="Button" Width="77" Height="38"/>
+                <Button x:Name="button3" Content="Button" Width="77" Height="38"/>
+            </StackPanel>
+        </ScrollViewer>-->
+        <!--<Label x:Name="archerCount" Content="2" HorizontalAlignment="Left" Height="26" Margin="112,148,0,0" VerticalAlignment="Top" Width="18"/>
+        <Button x:Name="archer" Content="Warrior" HorizontalAlignment="Left" Margin="32,150,0,0" VerticalAlignment="Top" Width="75" Click="button2_Click"/>-->
         <Button x:Name="button" Content="End Phase" HorizontalAlignment="Left" Height="46" Margin="32,407,0,0" VerticalAlignment="Top" Width="114" Click="button_Click"/>
         <Label x:Name="PhaseLabel" Content="SeUp" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="286,10,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
     </Grid>
