@@ -30,6 +30,8 @@ namespace Project1 {
 			UnitGrid.ShowGridLines = true;
 
 			AllUnitCountList = new List<KeyValuePair<TextBox, string>>();
+			Config conf = new Config();//TODO this needs to still be static
+			//List<string> UnitOptions = conf.UnitOptions;
 			List<string> UnitOptions = Config.GetUnitNames(Config.GoodUnits);
 
 			ColumnDefinition gridCol = new ColumnDefinition();
@@ -92,8 +94,11 @@ namespace Project1 {
 				}
 			}
 			//int pointlimit = Int32.Parse(PointLimit.Text);
-			Game game = new Game(board);
-            MainWindow mw = new MainWindow(game,UnitCount);
+			List<Player> Players = new List<Player>();
+			Players.Add(new Player(player1txtbox.Text, UnitCount));
+			Players.Add(new Player(player2txtbox.Text, UnitCount));
+			Game game = new Game(board,Players);
+			MainWindow mw = new MainWindow(game);//,UnitCount);
             mw.Show();
 			this.Close();
         }

@@ -22,22 +22,27 @@ namespace Project1 {
 
 		private Game Game;
 		private List<List<Label>> labels;//TODO see if i can get rid of alot of these
-		private bool finishsetup = false;//TODO should be able to replace this with just using the current phase. but again this wont be needed once setup is moved to a seperate window
+		//private bool finishsetup = false;//TODO should be able to replace this with just using the current phase. but again this wont be needed once setup is moved to a seperate window
 		private Button lastButton = null;//TODO should be able to be moved
 		private Label lastUnitCountLabel = null;//TODO should be able to be moved
 		private Position lastGridPositionClicked;
 		private bool isselected = false;
-		Dictionary<Button, Label> UnitPlacementList;//TODO should this be dict or list?
-		//i only need this before the board is set. So when the main window is broken into two windows break this off
+		Dictionary<Button, Label> UnitPlacementBtnLblMap;//TODO should this be dict or list?
+													//i only need this before the board is set. So when the main window is broken into two windows break this off
 
-		public MainWindow(Game Game,List<KeyValuePair<string,int>> UnitCount) {
-            InitializeComponent();
+		public MainWindow(Game Game) {
+			InitializeComponent();
 			this.Game = Game;
 			int rows = this.Game.Board.Rows;
 			int cols = this.Game.Board.Columns;
-			init(rows,cols);
-
-			UnitPlacementList = new Dictionary<Button, Label>();
+			PlayerLabel.Content = this.Game.Players[this.Game.PlayerTurnIndex].Name;
+			init(rows, cols);
+			PopulateUnitPlacementGrid(this.Game.Players[this.Game.PlayerTurnIndex].UnitsToPlace);
+		}
+		private void PopulateUnitPlacementGrid(List<KeyValuePair<string, int>> UnitCount) {
+			UnitGrid.RowDefinitions.Clear();
+			UnitGrid.ColumnDefinitions.Clear();
+			UnitPlacementBtnLblMap = new Dictionary<Button, Label>();
 			ColumnDefinition gridCol = new ColumnDefinition();
 			gridCol.Width = new GridLength(75);
 			UnitGrid.ColumnDefinitions.Add(gridCol);
@@ -85,7 +90,7 @@ namespace Project1 {
 				Grid.SetRow(l2, i);
 				Grid.SetColumn(l2, 1);
 				UnitGrid.Children.Add(l2);
-				UnitPlacementList[b2]= l2;
+				UnitPlacementBtnLblMap[b2]= l2;
 			}
         }
 
@@ -131,7 +136,6 @@ namespace Project1 {
                         l2.Width = 40;
                         l2.Height = 25;
                         l2.Foreground = new SolidColorBrush(Colors.White);
-                        //l2.Content = "blank";
                         l2.Margin = new Thickness(0, 0, 0, 0);
                         l2.VerticalAlignment = VerticalAlignment.Center;
                         l2.HorizontalAlignment = HorizontalAlignment.Center;
@@ -144,13 +148,13 @@ namespace Project1 {
                 }
                 labels.Add(rowlabels);
             }
-			UpdateAllLabels();
+			UpdateAllSquares();
 			lastGridPositionClicked = new Position(-1, -1);
         }
 
 		private void dynClick(object sender, RoutedEventArgs e) {
 			lastButton = (Button)sender;
-			lastUnitCountLabel = UnitPlacementList[lastButton];
+			lastUnitCountLabel = UnitPlacementBtnLblMap[lastButton];
 		}
 		private Position GetRowColOfClickedCell() {
 			var point = Mouse.GetPosition(grid);
@@ -184,7 +188,7 @@ namespace Project1 {
 			// row and col now correspond Grid's RowDefinition and ColumnDefinition mouse was over when double clicked!
 			Position position = GetRowColOfClickedCell();
 
-			if (!finishsetup) {
+			if (this.Game.isSetUp) {
 				if (lastButton != null) {
 					setguy(position);
 				}
@@ -202,50 +206,61 @@ namespace Project1 {
         }
         private void setguy(Position position) {//TODO can't place one guy over another. if so return the guy you overwrote back to your "hand"?
 			if (Int32.Parse(lastUnitCountLabel.Content.ToString()) > 0) {
-				this.Game.Board.SetUnit(position, Config.GoodUnits[lastButton.Content.ToString()]);
-				UpdateLabel(position);
+				Config conf = new Config();//TODO this needs to be fixed
+
+				Unit u = conf.makeguy(lastButton.Content.ToString());
+				u.Player = Game.Players[Game.PlayerTurnIndex];
+				Game.Board.SetUnit(position,u);
+				//this.Game.Board.SetUnit(position, Config.GoodUnits[lastButton.Content.ToString()]);
+				UpdateSquare(position);
 				int count = Int32.Parse(lastUnitCountLabel.Content.ToString());
 				lastUnitCountLabel.Content = count - 1;
 
-				bool isdoneplacing= true;
-				List<KeyValuePair<Button, Label>> dictList = UnitPlacementList.ToList();
+				List<KeyValuePair<Button, Label>> dictList = UnitPlacementBtnLblMap.ToList();
 				for(int i = 0; i < dictList.Count; i++) {
 					if (Int32.Parse(dictList[i].Value.Content.ToString()) > 0) {
-						isdoneplacing = false;
+						return;
 					}
 				}
-				if (isdoneplacing) { 
-					finishsetup = true;
-					Game.Phase = Game.Phases.Priority;//TODO this shouldn't be hardcoded
-					PhaseLabel.Content = Game.Phase;
-				}
+				//if done placing
+				this.Game.EndTurn();
+				UnitGrid.Children.Clear();
+				PlayerLabel.Content = this.Game.Players[this.Game.PlayerTurnIndex].Name;					
+				if (this.Game.isSetUp) {
+					PopulateUnitPlacementGrid(this.Game.Players[this.Game.PlayerTurnIndex].UnitsToPlace);
+				} else {
+					PhaseLabel.Content = this.Game.Phase;
+				}				
 			}
         }
 		private void perfmove(Position position) {
-			this.Game.Board.MoveUnit(lastGridPositionClicked, position);
-			UpdateLabel(lastGridPositionClicked);
-			UpdateLabel(position);
+			Game.Move(lastGridPositionClicked, position);
+			//this.Game.Board.MoveUnit(lastGridPositionClicked, position);
+			UpdateSquare(lastGridPositionClicked);
+			UpdateSquare(position);
 			isselected = false;
 			labels[lastGridPositionClicked.Row][lastGridPositionClicked.Column].Background = null;
 		}
 
-		private void UpdateLabel(Position position) {
+		private void UpdateSquare(Position position) {
 			labels[position.Row][position.Column].Content = this.Game.Board.GetSquareAtPos(position).Unit.Name;
+			//chnage color to show control
 		}
 
-		private void UpdateAllLabels() {
+		private void UpdateAllSquares() {
 			Position position = new Position();
 			for(int i = 0; i < labels.Count; i++) {
 				position.Row = i;
 				for (int j = 0; j < labels[i].Count; j++) {
 					position.Column = j;
-					UpdateLabel(position);
+					UpdateSquare(position);
 				}
 			}
 		}
 
-		private void EndPhase_Click(object sender, RoutedEventArgs e) {
-			Game.NextTurn();
+		private void EndGTurn_Click(object sender, RoutedEventArgs e) {
+			Game.EndTurn();
+			PlayerLabel.Content = Game.Players[Game.PlayerTurnIndex].Name;
 			PhaseLabel.Content = Game.Phase;
 		}
 	}

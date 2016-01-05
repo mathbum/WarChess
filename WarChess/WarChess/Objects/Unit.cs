@@ -26,7 +26,7 @@ namespace WarChess.Objects {
 		//TODO add max move dist
 		//TODO add dist left?
 		//TODO add max move dist while shootable
-
+		public Player Player { get; set; }
 		public string Name { get; protected set; }
 		public int Points { get; protected set; }
 		public int Width { get; protected set; }

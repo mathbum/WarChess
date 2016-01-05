@@ -28,14 +28,17 @@ namespace WarChess.Objects {
 		public void SetUnit(Position position, Unit unit) {
 			this.board[position.Row][position.Column].Unit = unit;
 		}
-		public bool isValidMove(Position originalPos, Position newPos) {//TODO fix this
+		public bool isValidMove(Position originalPos, Position newPos,Player Player) {//TODO finish this
+			if(Player!= board[originalPos.Row][originalPos.Column].Unit.Player) {
+				return false;
+			}
 			if (originalPos.Equals(newPos)||board[newPos.Row][newPos.Column].Unit!=this.NullUnit) {
 				return false;
 			}
 			return true;
 		}//TODO should i have a full refresh function
-		public void MoveUnit(Position originalPos,Position newPos) {
-			if (isValidMove(originalPos, newPos)) {
+		public void MoveUnit(Position originalPos,Position newPos,Player Player) {
+			if (isValidMove(originalPos, newPos,Player)) {
 				Unit tempUnit = GetSquareAtPos(originalPos).Unit;
 				SetUnit(newPos, tempUnit);
 				SetUnit(originalPos, this.NullUnit);

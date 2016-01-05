@@ -11,7 +11,8 @@
         <ScrollViewer Margin="12,197,605,294" Width="130" Height="100">
             <Grid x:Name ="UnitGrid" Background="Blue"/>
         </ScrollViewer>
-        <Button x:Name="button" Content="End Phase" HorizontalAlignment="Left" Height="46" Margin="32,407,0,0" VerticalAlignment="Top" Width="114" Click="EndPhase_Click"/>
-        <Label x:Name="PhaseLabel" Content="SeUp" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="321,10,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
+        <Button x:Name="button" Content="End Turn" HorizontalAlignment="Left" Height="46" Margin="32,407,0,0" VerticalAlignment="Top" Width="114" Click="EndGTurn_Click"/>
+        <Label x:Name="PhaseLabel" Content="SeUp" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="186,27,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
+        <Label x:Name="PlayerLabel" Content="Player1" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="392,27,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
     </Grid>
 </Window>
