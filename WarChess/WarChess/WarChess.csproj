@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="Config.cs" />
     <Compile Include="Objects\Board.cs" />
+    <Compile Include="Objects\Position.cs" />
     <Compile Include="Objects\Square.cs" />
     <Compile Include="Objects\Game.cs" />
     <Compile Include="Objects\NullUnit.cs" />

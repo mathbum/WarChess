@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace WarChess.Objects {
 	public class Unit{
+
+		//protected Unit() {}
+
 		public Unit(string Name,int Points,int Width,int Length,Config.Allegiance Allegiance, int Strength,int Defense,int Attack,int Wounds,int Might,int Will,int Fate) {
 			this.Name = Name;
 			this.Points = Points;
@@ -19,20 +22,22 @@ namespace WarChess.Objects {
 			this.Might = Might;
 			this.Will = Will;
 			this.Fate = Fate;
-		}//add range distace
-		//add max move dist while shootable
+		}//TODO add range distace
+		//TODO add max move dist
+		//TODO add dist left?
+		//TODO add max move dist while shootable
 
-		public string Name { get; private set; }
-		public int Points { get; private set; }
-		public int Width { get; private set; }
-		public int Length { get; private set; }
-		public Config.Allegiance Allegiance { get; private set; }
-		//fighting? first is handtohand fighting second is minimum roll to land a hit with range
-		public int Strength { get; private set; }
-		public int Defense { get; private set; }
-		public int Attack { get; private set; }
+		public string Name { get; protected set; }
+		public int Points { get; protected set; }
+		public int Width { get; protected set; }
+		public int Length { get; protected set; }
+		public Config.Allegiance Allegiance { get; protected set; }
+		//TODO fighting? first is handtohand fighting second is minimum roll to land a hit with range
+		public int Strength { get; protected set; }
+		public int Defense { get; protected set; }
+		public int Attack { get; protected set; }
 		public int Wounds { get; set; }
-		//public int Courage { get; set; }
+		//TODO public int Courage { get; set; }
 		public int Might { get; set; }
 		public int Will { get; set; }
 		public int Fate { get; set; }

@@ -92,8 +92,8 @@ namespace Project1 {
 				}
 			}
 			//int pointlimit = Int32.Parse(PointLimit.Text);
-			Game game = new Game();
-            MainWindow mw = new MainWindow(game,board,UnitCount);
+			Game game = new Game(board);
+            MainWindow mw = new MainWindow(game,UnitCount);
             mw.Show();
 			this.Close();
         }

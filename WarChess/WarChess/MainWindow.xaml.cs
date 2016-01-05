@@ -21,22 +21,21 @@ namespace Project1 {
     public partial class MainWindow : Window {
 
 		private Game Game;
-		private List<List<Label>> labels;
-		private bool finishsetup = false;
-		private Button lastButton = null;
-		private Label lastLabel = null;
-		private Label lastclick = null;
+		private List<List<Label>> labels;//TODO see if i can get rid of alot of these
+		private bool finishsetup = false;//TODO should be able to replace this with just using the current phase. but again this wont be needed once setup is moved to a seperate window
+		private Button lastButton = null;//TODO should be able to be moved
+		private Label lastUnitCountLabel = null;//TODO should be able to be moved
+		private Position lastGridPositionClicked;
 		private bool isselected = false;
-		private Board board = null;
-		Dictionary<Button, Label> UnitPlacementList;//should this be dict or list?
+		Dictionary<Button, Label> UnitPlacementList;//TODO should this be dict or list?
+		//i only need this before the board is set. So when the main window is broken into two windows break this off
 
-		public MainWindow(Game game,Board board,List<KeyValuePair<string,int>> UnitCount) {
+		public MainWindow(Game Game,List<KeyValuePair<string,int>> UnitCount) {
             InitializeComponent();
-			this.Game = game;
-			this.board = board;
-			int rows = board.rows;
-			int cols = board.cols;
-            init(rows,cols);
+			this.Game = Game;
+			int rows = this.Game.Board.Rows;
+			int cols = this.Game.Board.Columns;
+			init(rows,cols);
 
 			UnitPlacementList = new Dictionary<Button, Label>();
 			ColumnDefinition gridCol = new ColumnDefinition();
@@ -87,10 +86,7 @@ namespace Project1 {
 				Grid.SetColumn(l2, 1);
 				UnitGrid.Children.Add(l2);
 				UnitPlacementList[b2]= l2;
-
 			}
-			//soldierCount.Content = UnitCount[0].Value;
-            //archerCount.Content = UnitCount[1].Value;
         }
 
 		private void init(int rows, int cols) {
@@ -135,111 +131,120 @@ namespace Project1 {
                         l2.Width = 40;
                         l2.Height = 25;
                         l2.Foreground = new SolidColorBrush(Colors.White);
-                        l2.Content = "blank";
+                        //l2.Content = "blank";
                         l2.Margin = new Thickness(0, 0, 0, 0);
                         l2.VerticalAlignment = VerticalAlignment.Center;
                         l2.HorizontalAlignment = HorizontalAlignment.Center;
 
                     }
-                    rowlabels.Add(l2);
-                    Grid.SetRow(l2, i);
+                    rowlabels.Add(l2);					
+					Grid.SetRow(l2, i);
                     Grid.SetColumn(l2, j);
                     grid.Children.Add(l2);
                 }
                 labels.Add(rowlabels);
             }
+			UpdateAllLabels();
+			lastGridPositionClicked = new Position(-1, -1);
         }
 
 		private void dynClick(object sender, RoutedEventArgs e) {
 			lastButton = (Button)sender;
-			lastLabel = UnitPlacementList[lastButton];
-			//lastLabel = soldierCount;
+			lastUnitCountLabel = UnitPlacementList[lastButton];
 		}
+		private Position GetRowColOfClickedCell() {
+			var point = Mouse.GetPosition(grid);
 
-		//private void button1_Click(object sender, RoutedEventArgs e) {
-  //          lastButton = (Button)sender;
-  //          //string text = b.Content.ToString();
-  //          lastLabel = soldierCount;
-  //      }
-		//private void button2_Click(object sender, RoutedEventArgs e) {
-		//	lastButton = (Button)sender;
-		//	lastLabel = archerCount;
-		//}
-		private void OnPreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e) {
-            //if (e.ClickCount == 2) { // for double-click, remove this condition if only want single click
-            var point = Mouse.GetPosition(grid);
+			int row = 0;
+			int col = 0;
+			double accumulatedHeight = 0.0;
+			double accumulatedWidth = 0.0;
 
-            int row = 0;
-            int col = 0;
-            double accumulatedHeight = 0.0;
-            double accumulatedWidth = 0.0;
+			// calc row mouse was over
+			foreach (var rowDefinition in grid.RowDefinitions) {
+				accumulatedHeight += rowDefinition.ActualHeight;
+				if (accumulatedHeight >= point.Y)
+					break;
+				row++;
+			}
 
-            // calc row mouse was over
-            foreach (var rowDefinition in grid.RowDefinitions) {
-                accumulatedHeight += rowDefinition.ActualHeight;
-                if (accumulatedHeight >= point.Y)
-                    break;
-                row++;
-            }
+			// calc col mouse was over
+			foreach (var columnDefinition in grid.ColumnDefinitions) {
+				accumulatedWidth += columnDefinition.ActualWidth;
+				if (accumulatedWidth >= point.X)
+					break;
+				col++;
+			}
+			return new Position(row, col);
+		}
+		private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+			//if (e.ClickCount == 2) { // for double-click, remove this condition if only want single click
 
-            // calc col mouse was over
-            foreach (var columnDefinition in grid.ColumnDefinitions) {
-                accumulatedWidth += columnDefinition.ActualWidth;
-                if (accumulatedWidth >= point.X)
-                    break;
-                col++;
-            }
-            //MessageBox.Show(string.Format("Grid clicked at row {0}, column {1}", row, col));
+			//MessageBox.Show(string.Format("Grid clicked at row {0}, column {1}", row, col));
 			// row and col now correspond Grid's RowDefinition and ColumnDefinition mouse was over when double clicked!
+			Position position = GetRowColOfClickedCell();
+
 			if (!finishsetup) {
 				if (lastButton != null) {
-					setguy(row, col);
+					setguy(position);
 				}
 			} else {
 				if (Game.Phase == Game.Phases.Move) {
-					if (lastclick != null && isselected) {
-						perfmove(row, col);
+					if (lastGridPositionClicked != null && isselected) {
+						perfmove(position);
 					} else {
 						isselected = true;
-						lastclick = labels[row][col];
-						lastclick.Background = new SolidColorBrush(Colors.Black);
+						lastGridPositionClicked = position;
+						labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
 					}
 				}
 			}
         }
-        private void setguy(int row,int col) {//can't place one guy over another. if so return the guy you overwrote back to your "hand"?
-			if (Int32.Parse(lastLabel.Content.ToString()) > 0) {
-				Label label = labels[row][col];
-				label.Content = lastButton.Content.ToString();
-				int count = Int32.Parse(lastLabel.Content.ToString());
-				lastLabel.Content = count - 1;
+        private void setguy(Position position) {//TODO can't place one guy over another. if so return the guy you overwrote back to your "hand"?
+			if (Int32.Parse(lastUnitCountLabel.Content.ToString()) > 0) {
+				this.Game.Board.SetUnit(position, Config.GoodUnits[lastButton.Content.ToString()]);
+				UpdateLabel(position);
+				int count = Int32.Parse(lastUnitCountLabel.Content.ToString());
+				lastUnitCountLabel.Content = count - 1;
 
 				bool isdoneplacing= true;
 				List<KeyValuePair<Button, Label>> dictList = UnitPlacementList.ToList();
 				for(int i = 0; i < dictList.Count; i++) {
-					if (Int32.Parse(dictList[i].Value.Content.ToString()) >0) {
+					if (Int32.Parse(dictList[i].Value.Content.ToString()) > 0) {
 						isdoneplacing = false;
 					}
 				}
 				if (isdoneplacing) { 
-				//if (Int32.Parse(soldierCount.Content.ToString()) == 0 && Int32.Parse(archerCount.Content.ToString()) == 0) {
 					finishsetup = true;
-					Game.Phase = Game.Phases.Priority;//this shouldn't be hardcoded
+					Game.Phase = Game.Phases.Priority;//TODO this shouldn't be hardcoded
 					PhaseLabel.Content = Game.Phase;
 				}
 			}
         }
-		private void perfmove(int row, int col) {
-			Label newclick = labels[row][col];
-			string text1 = lastclick.Content.ToString();
-			string text2 = newclick.Content.ToString();
-			lastclick.Content = text2;
-			newclick.Content = text1;
+		private void perfmove(Position position) {
+			this.Game.Board.MoveUnit(lastGridPositionClicked, position);
+			UpdateLabel(lastGridPositionClicked);
+			UpdateLabel(position);
 			isselected = false;
-			lastclick.Background = null;
+			labels[lastGridPositionClicked.Row][lastGridPositionClicked.Column].Background = null;
 		}
 
-		private void button_Click(object sender, RoutedEventArgs e) {
+		private void UpdateLabel(Position position) {
+			labels[position.Row][position.Column].Content = this.Game.Board.GetSquareAtPos(position).Unit.Name;
+		}
+
+		private void UpdateAllLabels() {
+			Position position = new Position();
+			for(int i = 0; i < labels.Count; i++) {
+				position.Row = i;
+				for (int j = 0; j < labels[i].Count; j++) {
+					position.Column = j;
+					UpdateLabel(position);
+				}
+			}
+		}
+
+		private void EndPhase_Click(object sender, RoutedEventArgs e) {
 			Game.NextTurn();
 			PhaseLabel.Content = Game.Phase;
 		}

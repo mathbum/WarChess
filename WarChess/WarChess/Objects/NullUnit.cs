@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace WarChess.Objects {
-	class NullUnit {
-	}//should set this up
+	public class NullUnit : Unit {
+		public NullUnit(): base("blank", 0, 0, 0, Config.Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0){}
+	}
 }

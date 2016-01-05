@@ -8,8 +8,11 @@ namespace WarChess.Objects {
 	public class Game {//static?
 		public enum Phases { Priority, Move, Shoot, Fight };//need end phase?		
 
+		public Game(Board Board) {
+			this.Board = Board;
+		}
 		public Phases Phase { get; set; }
-		public Board Board { get; set; }
+		public Board Board { get; private set; }
 
 		public Phases NextTurn() {
 			Phases[] vals = (Phases[]) Enum.GetValues(typeof(Phases));
@@ -27,9 +30,6 @@ namespace WarChess.Objects {
 
 			throw new ArgumentException();
 			//THIS BETTER NEVER HAPPEN
-			//return Phase;
 		}
-		//movement functions should be here
-		//vertifying a valid movement should be done here
 	}
 }
