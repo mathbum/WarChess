@@ -30,9 +30,7 @@ namespace Project1 {
 			UnitGrid.ShowGridLines = true;
 
 			AllUnitCountList = new List<KeyValuePair<TextBox, string>>();
-			Config conf = new Config();//TODO this needs to still be static
-			//List<string> UnitOptions = conf.UnitOptions;
-			List<string> UnitOptions = Config.GetUnitNames(Config.GoodUnits);
+			List<string> UnitOptions = Config.GetUnitNames(Config.Units);
 
 			ColumnDefinition gridCol = new ColumnDefinition();
 			gridCol.Width = new GridLength(100);
@@ -82,23 +80,25 @@ namespace Project1 {
 		}
 
         private void button_Click(object sender, RoutedEventArgs e) {
-            int rows = Int32.Parse(trows.Text);
-            int cols = Int32.Parse(tcols.Text);
+            int rows = int.Parse(trows.Text);
+            int cols = int.Parse(tcols.Text);
 			Board board = new Board(rows, cols);
 
-			List<KeyValuePair<string, int>> UnitCount = new List<KeyValuePair<string, int>>();
-			for(int i = 0; i < AllUnitCountList.Count; i++) {
-				int count = Int32.Parse(AllUnitCountList[i].Key.Text);
+			Dictionary<string, int> UnitCount1 = new Dictionary<string, int>();
+			Dictionary<string, int> UnitCount2 = new Dictionary<string, int>();
+			for (int i = 0; i < AllUnitCountList.Count; i++) {
+				int count = int.Parse(AllUnitCountList[i].Key.Text);
 				if (count > 0) {
-					UnitCount.Add(new KeyValuePair<string, int>(AllUnitCountList[i].Value,count));
+					UnitCount1[AllUnitCountList[i].Value] = count;
+					UnitCount2[AllUnitCountList[i].Value] = count;
 				}
 			}
-			//int pointlimit = Int32.Parse(PointLimit.Text);
+			//int pointlimit = int.Parse(PointLimit.Text);
 			List<Player> Players = new List<Player>();
-			Players.Add(new Player(player1txtbox.Text, UnitCount));
-			Players.Add(new Player(player2txtbox.Text, UnitCount));
+			Players.Add(new Player(player1txtbox.Text, UnitCount1));
+			Players.Add(new Player(player2txtbox.Text, UnitCount2));
 			Game game = new Game(board,Players);
-			MainWindow mw = new MainWindow(game);//,UnitCount);
+			MainWindow mw = new MainWindow(game);
             mw.Show();
 			this.Close();
         }
@@ -107,8 +107,8 @@ namespace Project1 {
 			int points = 0;
 			for (int i = 0; i < AllUnitCountList.Count; i++) {
 				try {
-					int count = Int32.Parse(AllUnitCountList[i].Key.Text);
-					points += count * Config.GoodUnits[AllUnitCountList[i].Value].Points;
+					int count = int.Parse(AllUnitCountList[i].Key.Text);
+					points += count * Config.Units[AllUnitCountList[i].Value].Points;
 				} catch { }
 			}
 			PointsLabel.Content = points;

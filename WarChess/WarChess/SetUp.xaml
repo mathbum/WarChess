@@ -11,7 +11,7 @@
         <TextBox x:Name="trows" HorizontalAlignment="Left" Height="23" Margin="18,26,0,0" TextWrapping="Wrap" Text="4" VerticalAlignment="Top" Width="51"/>
         <TextBox x:Name="tcols" HorizontalAlignment="Left" Height="23" Margin="85,26,0,0" TextWrapping="Wrap" Text="5" VerticalAlignment="Top" Width="51"/>
         <!--<TextBox x:Name="PointLimit" HorizontalAlignment="Left" Height="27" Margin="85,56,0,0" TextWrapping="Wrap" Text="25" VerticalAlignment="Top" Width="51"/>
-        <Label x:Name="PointLbl" Content="Point Limit" HorizontalAlignment="Left" Height="27" Margin="18,56,0,0" VerticalAlignment="Top" Width="51"/>-->
+        <Label Content="Point Limit" HorizontalAlignment="Left" Height="27" Margin="18,56,0,0" VerticalAlignment="Top" Width="51"/>-->
         <TextBox x:Name="player1txtbox" HorizontalAlignment="Left" Height="23" Margin="18,110,0,0" TextWrapping="Wrap" Text="Player1" VerticalAlignment="Top" Width="51"/>
         <TextBox x:Name="player2txtbox" HorizontalAlignment="Left" Height="23" Margin="85,110,0,0" TextWrapping="Wrap" Text="Player2" VerticalAlignment="Top" Width="51"/>
         <ScrollViewer Margin="10,160,2,40" Width="150" Height="100">

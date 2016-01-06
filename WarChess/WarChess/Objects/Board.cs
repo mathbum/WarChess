@@ -25,10 +25,23 @@ namespace WarChess.Objects {
 			this.Rows = rows;
 			this.Columns = cols;
 		}
-		public void SetUnit(Position position, Unit unit) {
+		public bool PlaceUnit(Position position,Unit unit) {
+			bool isValidPlacement = IsValidPlacement(position, unit);
+			if (isValidPlacement) {
+				SetUnit(position, unit);
+			}
+			return isValidPlacement;
+		}
+		private bool IsValidPlacement(Position position,Unit unit) {//TODO finish this
+			if (board[position.Row][position.Column].Unit != this.NullUnit) {
+				return false;
+			}
+			return true;
+		}
+		private void SetUnit(Position position, Unit unit) {
 			this.board[position.Row][position.Column].Unit = unit;
 		}
-		public bool isValidMove(Position originalPos, Position newPos,Player Player) {//TODO finish this
+		private bool isValidMove(Position originalPos, Position newPos,Player Player) {//TODO finish this
 			if(Player!= board[originalPos.Row][originalPos.Column].Unit.Player) {
 				return false;
 			}

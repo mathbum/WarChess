@@ -6,13 +6,24 @@
         xmlns:local="clr-namespace:Project1"
         mc:Ignorable="d"
         Title="MainWindow" Height="621" Width="775.131">
-    <Grid>
+    <Grid x:Name="MainGrid">
         <Grid x:Name="grid" HorizontalAlignment="Left" Height="258" Margin="167,100,0,0" VerticalAlignment="Top" Width="500" PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown"/>
-        <ScrollViewer Margin="12,197,605,294" Width="130" Height="100">
+        <ScrollViewer x:Name="UnitGridScroller" Margin="12,197,605,294" Width="130" Height="100">
             <Grid x:Name ="UnitGrid" Background="Blue"/>
         </ScrollViewer>
-        <Button x:Name="button" Content="End Turn" HorizontalAlignment="Left" Height="46" Margin="32,407,0,0" VerticalAlignment="Top" Width="114" Click="EndGTurn_Click"/>
+        <Button x:Name="button" Content="End Turn" HorizontalAlignment="Left" Height="46" Margin="32,407,0,0" VerticalAlignment="Top" Width="114" Click="EndTurn_Click"/>
         <Label x:Name="PhaseLabel" Content="SeUp" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="186,27,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
         <Label x:Name="PlayerLabel" Content="Player1" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="392,27,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
+        <Grid HorizontalAlignment="Left" Height="137" Margin="22,34,0,0" VerticalAlignment="Top" Width="140" >
+            <Border BorderBrush="Black" BorderThickness="1"/>
+            <Label x:Name="Namelabel" Content="Name" Margin="36,0,34,108" HorizontalContentAlignment="Center"/>
+            <Label x:Name="Pointslabellbl" Content="0" Margin="109,34,13,79" HorizontalContentAlignment="Center"/>
+            <Label x:Name="Strengthlabellbl" Content="0" Margin="109,49,13,65" HorizontalContentAlignment="Center"/>
+            <Label x:Name="Defenselabellbl" Content="0" Margin="109,63,13,51" HorizontalContentAlignment="Center"/>
+            <Label Content="Points:" Margin="54,34,31,80"/>
+            <Label Content="Strength:" Margin="54,49,31,65"/>
+            <Label Content="Defense:" Margin="54,63,31,51"/>
+            <Label x:Name="UnitPlayerLbl" Content="Player" Margin="36,86,49,28"/>
+        </Grid>
     </Grid>
 </Window>
