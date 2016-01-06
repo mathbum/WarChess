@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,9 +20,10 @@ namespace WarChess.Objects {
 		public Board Board { get; private set; }
 		public bool IsInSetup { get; private set; }
 		//public enum Phases { Priority, Move, Shoot, Fight };//TODO need end phase? 	do i need priotiry phase?
-		public enum Phases { Move, Shoot, Fight };//TODO need end phase? 	do i need priotiry phase?
-		private List<Player> Players { get; set; }
-		private int PlayerTurnIndex { get; set; }
+		public enum Phases { Move};//TODO need end phase? 	do i need priotiry phase?
+		private List<Player> Players;// { get; set; }
+		private int PlayerTurnIndex;// { get; set; }
+		private List<List<Unit>> Conflicts = new List<List<Unit>>();//{ get; set; }
 
 		public bool PlaceUnit(Position position,Unit unit) {
 			bool succ = Board.PlaceUnit(position, unit);
@@ -52,7 +54,7 @@ namespace WarChess.Objects {
 			Config.Allegiance Allegiance = tempUnit.Allegiance;
 			int Strength = tempUnit.Strength;
 			int Defense = tempUnit.Defense;
-			int Attack = tempUnit.Attack;
+			int Attack = tempUnit.Attacks;
 			int Wounds = tempUnit.Wounds;
 			int Might = tempUnit.Might;
 			int Will = tempUnit.Will;
@@ -60,9 +62,88 @@ namespace WarChess.Objects {
 			return new Unit(Name, Points, Width, Length, Allegiance, Strength, Defense, Attack, Wounds, Might, Will, Fate);
 		}
 
-		public void Move(Position originalPos, Position newPos) {
-			Board.MoveUnit(originalPos, newPos, GetCurrentPlayer());
+		public bool Move(Position originalPos, Position newPos) {
+			return Board.MoveUnit(originalPos, newPos, GetCurrentPlayer());
 		}
+
+		public void AddConflict(Unit enemyUnit, Unit playerUnit) {
+			for(int i = 0; i < Conflicts.Count; i++) {
+				for(int j = 0; j < Conflicts[i].Count; j++) {
+					Unit unit = Conflicts[i][j];
+					if (unit==enemyUnit) {
+						Conflicts[i].Add(playerUnit);
+						return;
+					}
+				}
+			}
+			Conflicts.Add(new List<Unit>() { enemyUnit, playerUnit });
+			Trace.WriteLine("Conflict: " + enemyUnit.Player.Name + ": " + enemyUnit.Name + "--" + playerUnit.Player.Name + ": " + playerUnit.Name);
+			//TODO remove the trace
+		}
+
+		public void ResolveAllConflicts() {			
+			for (int i = 0; i < Conflicts.Count; i++) {
+				ResolveConflict(Conflicts[i]);				
+			}
+			Conflicts.Clear();
+		}
+
+		public void ResolveConflict(List<Unit> Conflict) {
+			Player Victor = DetermineConflictVictor(Conflict);			
+			int wounds = 0;
+			Unit enemyUnit=null;
+			for (int i = 0; i < Conflict.Count; i++) {//TODO pick who is attacked
+				if (Conflict[i].Player != Victor) {
+					enemyUnit = Conflict[i];
+					break;
+				}
+			}
+			for (int i = 0; i < Conflict.Count; i++) {//sums total wounds to that unit
+				if (Conflict[i].Player == Victor) {
+					if (Utils.RandomBoolByPercent(Config.WoundChart[Conflict[i].Strength][enemyUnit.Defense])) {
+						wounds += 1;
+					}					
+				}
+			}
+			enemyUnit.Wounds -= wounds;
+			if (enemyUnit.Wounds < 1) {
+				Board.KillUnit(enemyUnit);
+			}
+
+		}
+
+		public Player DetermineConflictVictor(List<Unit> Conflict) {
+			Dictionary<Player, int> PlayerRolls = new Dictionary<Player, int>();
+			for (int i = 0; i < Conflict.Count; i++) {//determine number of rolls each player gets
+				Unit unit = Conflict[i];
+				if (PlayerRolls.ContainsKey(unit.Player)){
+					PlayerRolls[unit.Player] = PlayerRolls[unit.Player] + unit.Attacks;
+				} else {
+					PlayerRolls[unit.Player] = unit.Attacks;
+				}
+			}
+
+			List<Player> HighestPlayers = new List<Player>();
+			int HighestRoll = 0;
+			List<KeyValuePair<Player, int>> PlayerRollsList = PlayerRolls.ToList();
+			for (int i = 0; i < PlayerRollsList.Count; i++) {//find player(s) with highest roll
+				int MaxPlayerRoll = Utils.RollD6(PlayerRollsList[i].Value).Max();//TODO: this should shortcircuit
+				if (MaxPlayerRoll == HighestRoll) {
+					HighestPlayers.Add(PlayerRollsList[i].Key);
+				} else if (MaxPlayerRoll > HighestRoll) {
+					HighestRoll = MaxPlayerRoll;
+					HighestPlayers.Clear();
+					HighestPlayers.Add(PlayerRollsList[i].Key);
+				}
+			}
+			if (HighestPlayers.Count == 1) {
+				return HighestPlayers[0];
+			}
+			//TODO try to resolve fight via fighting stat on units
+			int victor = Utils.GenerateRandomInt(HighestPlayers.Count);
+			return HighestPlayers[victor];
+		}
+
 
 		public void EndTurn() {
 			if (PlayerTurnIndex == Players.Count - 1) {
@@ -74,7 +155,7 @@ namespace WarChess.Objects {
 					NextPhase();
 					if (this.Phase == Phases.Move) {
 					//if (this.Phase == Phases.Priority) {
-							Players = Utils.PickPriority(Players);
+						Players = Utils.PickPriority(Players);
 					}
 				}
 				PlayerTurnIndex = 0;
@@ -88,6 +169,7 @@ namespace WarChess.Objects {
 
 			if (vals[vals.Length-1] == Phase) {
 				Phase = vals[0];
+				ResolveAllConflicts();
 				return Phase;
 			}
 			for(int i = 0; i < vals.Length; i++) {

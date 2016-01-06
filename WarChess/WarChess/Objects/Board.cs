@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace WarChess.Objects {
 		List<List<Square>> board;
 		public int Rows { get; private set; }
 		public int Columns { get; private set; }
-		private NullUnit NullUnit;
+		public NullUnit NullUnit { get; private set; }
 
 		public Board(int rows,int cols) {//TODO is it possible for a board to be created without nullunits everywhere?
 			this.NullUnit = new NullUnit();
@@ -49,16 +50,48 @@ namespace WarChess.Objects {
 				return false;
 			}
 			return true;
-		}//TODO should i have a full refresh function
-		public void MoveUnit(Position originalPos,Position newPos,Player Player) {
+		}
+		public bool MoveUnit(Position originalPos,Position newPos,Player Player) {
 			if (isValidMove(originalPos, newPos,Player)) {
 				Unit tempUnit = GetSquareAtPos(originalPos).Unit;
 				SetUnit(newPos, tempUnit);
-				SetUnit(originalPos, this.NullUnit);
+				SetUnit(originalPos, NullUnit);
+				return true;
 			}
+			return false;
+		}
+		public void KillUnit(Unit unit) {
+			for(int i = 0; i < board.Count; i++) {
+				for (int j = 0; j < board[i].Count; j++) {
+					if (board[i][j].Unit == unit) {
+						SetUnit(new Position(i, j), NullUnit);
+						Trace.WriteLine("Killed: " + unit.Name + " at pos: " +i+", "+j);
+					}
+				}
+			}
+			
 		}
 		public Square GetSquareAtPos(Position position) {
+			//if (position.Row >= Rows || position.Column >= Columns) {
+			//	return null;
+			//}
 			return board[position.Row][position.Column];
+		}
+		public List<Square> GetSurroundingSquares(Position position) {
+			List<Square> surroundingSquares = new List<Square>();
+			if(position.Row - 1 >= 0) {//up
+				surroundingSquares.Add(GetSquareAtPos(new Position(position.Row - 1, position.Column)));
+			}
+			if (position.Column + 1 < Columns) {//right
+				surroundingSquares.Add(GetSquareAtPos(new Position(position.Row, position.Column + 1)));
+			}
+			if (position.Row + 1 < Rows) {//down
+				surroundingSquares.Add(GetSquareAtPos(new Position(position.Row + 1, position.Column)));
+			}
+			if (position.Column - 1 >= 0) {//left
+				surroundingSquares.Add(GetSquareAtPos(new Position(position.Row, position.Column - 1)));
+			}			
+			return surroundingSquares;
 		}
 	}
 }

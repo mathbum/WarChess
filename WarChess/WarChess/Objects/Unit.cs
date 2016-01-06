@@ -9,7 +9,7 @@ namespace WarChess.Objects {
 
 		//protected Unit() {}
 
-		public Unit(string Name,int Points,int Width,int Length,Config.Allegiance Allegiance, int Strength,int Defense,int Attack,int Wounds,int Might,int Will,int Fate) {
+		public Unit(string Name,int Points,int Width,int Length,Config.Allegiance Allegiance, int Strength,int Defense,int Attacks,int Wounds,int Might,int Will,int Fate) {
 			this.Name = Name;
 			this.Points = Points;
 			this.Width = Width;
@@ -17,7 +17,7 @@ namespace WarChess.Objects {
 			this.Allegiance = Allegiance;
 			this.Strength = Strength;
 			this.Defense = Defense;
-			this.Attack = Attack;
+			this.Attacks = Attacks;
 			this.Wounds = Wounds;
 			this.Might = Might;
 			this.Will = Will;
@@ -35,7 +35,7 @@ namespace WarChess.Objects {
 		//TODO fighting? first is handtohand fighting second is minimum roll to land a hit with range
 		public int Strength { get; protected set; }
 		public int Defense { get; protected set; }
-		public int Attack { get; protected set; }
+		public int Attacks { get; protected set; }
 		public int Wounds { get; set; }
 		//TODO public int Courage { get; set; }
 		public int Might { get; set; }

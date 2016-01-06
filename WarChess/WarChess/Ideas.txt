@@ -1,0 +1,19 @@
+﻿Game Modes:
+	add teams (currently all players are enemies)
+	DeathMatch
+	Control Point
+	Kill Marked Unit
+	Deliver Object
+	Survive for X turns
+	Maybe add option to turn off full map visibility and knowing what other units have
+
+Scenario Builder:
+	Define the places that each player can place units
+
+Allow Shelob to Spawn little units
+
+Redue Wound chart via formula
+
+Expand Max Defense and Strength
+
+add compatable items list to units. and items that they are holding (bows etc go into this)

@@ -244,11 +244,22 @@ namespace Project1 {
 			}
         }
 		private void perfmove(Position position) {
-			Game.Move(lastGridPositionClicked, position);
+			bool succ = Game.Move(lastGridPositionClicked, position);			
 			UpdateSquare(lastGridPositionClicked);
 			UpdateSquare(position);
 			isselected = false;
+			if (succ) {
+				List<Square> squares = Game.Board.GetSurroundingSquares(position);//TODO make this way better. very basic charging rules
+				for (int i = 0; i < squares.Count; i++) {
+					Unit unit = squares[i].Unit;
+					if (unit!=Game.Board.NullUnit && unit.Player != Game.GetCurrentPlayer()) {
+						Game.AddConflict(unit, Game.Board.GetSquareAtPos(position).Unit);
+						return;
+					}
+				}
+			}
 		}
+
 
 		private void UpdateSquare(Position position) {
 			Unit unitatpos = Game.Board.GetSquareAtPos(position).Unit;
