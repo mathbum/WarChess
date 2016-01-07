@@ -72,16 +72,15 @@ namespace WarChess.Objects {
 		//maybe key/value should determine team sides instead of just determining units in the conflict then resolving as if there are no sides	
 		//victors should be by unit instead of by player. this solves the below issue
 		//what if A has super unit. So B,C,D all attack A (but don't want to attack eachother) in this case B,C,D should be victors together? (and only be able to attack A)
-
-		//TODO make function to determine if user is in conflict	
 		
 		//TODO add function to get all possible charges? then use this on the gui to allow user to determine who they attack
-		//TODO freeze units that are in combat
 		//TODO allow users to cancel a movement //TODO add temp conflicts 
 		//TODO add gui to show conflicts		
 
 
 		public void AddConflict(Unit defendingUnit, Unit attackingUnit) {
+			defendingUnit.InConflict = true;
+			attackingUnit.InConflict = true;
 			if (Conflicts.ContainsKey(defendingUnit)) {
 				Conflicts[defendingUnit].Add(attackingUnit);
 				return; 
@@ -113,7 +112,7 @@ namespace WarChess.Objects {
 			Conflicts[defendingUnit] = new List<Unit>() { attackingUnit };
 
 			//TODO: Add Three Way combat (highest combat possible though not possible with the block model)
-			//A and B are fighting and C attacks both. D attacks A. It matters if A or B are key to determine if its A,B,C,D or if its A,D B,C			
+			//A and B are fighting and C attacks both. D attacks A. It matters if A or B are key to determine if its A,B,C,D or if its A,D B,C					
 		}
 		public void ResolveAllConflicts() {
 			List<KeyValuePair<Unit, List<Unit>>> Conflicts1List = Conflicts.ToList();
@@ -141,6 +140,11 @@ namespace WarChess.Objects {
 			struckUnit.Wounds -= WoundsInflicted;
 			if (struckUnit.Wounds < 1) {
 				Board.KillUnit(struckUnit);
+			}
+
+			Conflict.Key.InConflict = false;
+			for(int i = 0; i < Conflict.Value.Count; i++) {
+				Conflict.Value[i].InConflict = false;
 			}
 		}
 

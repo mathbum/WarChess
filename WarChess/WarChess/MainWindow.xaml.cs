@@ -187,19 +187,9 @@ namespace Project1 {
 			//MessageBox.Show(string.Format("Grid clicked at row {0}, column {1}", row, col));
 			// row and col now correspond Grid's RowDefinition and ColumnDefinition mouse was over when double clicked!
 			Position position = GetPosOfClickedCell();
-			Unit unitatpos = Game.Board.GetSquareAtPos(position).Unit;
-			Namelabel.Content = unitatpos.Name;
-			Pointslabellbl.Content = unitatpos.Points;
-			Strengthlabellbl.Content = unitatpos.Strength;
-			Defenselabellbl.Content = unitatpos.Defense;
-			if (unitatpos is NullUnit || unitatpos==null) {
-				UnitPlayerLbl.Content = "None";
-			} else {				
-				UnitPlayerLbl.Content = unitatpos.Player.Name;
-			}
-			
-
-
+			UpdatePreview(position);
+			//TODO only show preview for non null units
+			//TODO only allow your units to be selected
 			if (Game.IsInSetup) {
 				if (lastButton != null) {
 					setguy(position);
@@ -260,11 +250,33 @@ namespace Project1 {
 			}
 		}
 
+		private void UpdatePreview(Position position) {
+			Unit unitatpos = Game.Board.GetSquareAtPos(position).Unit;
+			Namelabel.Content = unitatpos.Name;
+			Pointslabellbl.Content = unitatpos.Points;
+			Strengthlabellbl.Content = unitatpos.Strength;
+			Defenselabellbl.Content = unitatpos.Defense;
+			if (unitatpos is NullUnit || unitatpos == null) {
+				UnitPlayerLbl.Content = "None";
+			} else {
+				UnitPlayerLbl.Content = unitatpos.Player.Name;
+			}
+			SolidColorBrush color = new SolidColorBrush(Colors.Red);
+			string Conflictlbl = "In Conflict";//TODO don't hardcode this
+			if (!unitatpos.InConflict) {
+				Conflictlbl = "Not In Conflict";
+				color = new SolidColorBrush(Colors.Green);
+			}
+			InConflictLbl.Content = Conflictlbl;
+			InConflictLbl.Background = color;
+		}
+
 
 		private void UpdateSquare(Position position) {
 			Unit unitatpos = Game.Board.GetSquareAtPos(position).Unit;
 			Label labelatpos = labels[position.Row][position.Column];
 			labelatpos.Content = unitatpos.Name;
+
 			if(!(unitatpos is NullUnit)) {
 				if (unitatpos.Player == Game.GetCurrentPlayer()) {
 					labelatpos.Background = new SolidColorBrush(Colors.Green);

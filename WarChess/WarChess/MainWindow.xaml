@@ -23,7 +23,8 @@
             <Label Content="Points:" Margin="54,34,31,80"/>
             <Label Content="Strength:" Margin="54,49,31,65"/>
             <Label Content="Defense:" Margin="54,63,31,51"/>
-            <Label x:Name="UnitPlayerLbl" Content="Player" Margin="36,86,49,28"/>
+            <Label x:Name="UnitPlayerLbl" Content="Player" Margin="51,13,34,101"/>
+            <Label x:Name="InConflictLbl" Content="InConflict?" Margin="36,104,43,10"/>
         </Grid>
     </Grid>
 </Window>

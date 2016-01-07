@@ -43,10 +43,13 @@ namespace WarChess.Objects {
 			this.board[position.Row][position.Column].Unit = unit;
 		}
 		private bool isValidMove(Position originalPos, Position newPos,Player Player) {//TODO finish this
-			if(Player!= board[originalPos.Row][originalPos.Column].Unit.Player) {
+			if(Player!= GetSquareAtPos(originalPos).Unit.Player) {//TODO if it isn't your unit. Maybe this should just be disallowed by gui?
 				return false;
 			}
-			if (originalPos.Equals(newPos)||board[newPos.Row][newPos.Column].Unit!=this.NullUnit) {
+			if (originalPos.Equals(newPos)||GetSquareAtPos(newPos).Unit!=this.NullUnit) {//TODO if you tried to move onto another unit or move to where the unit was. Maybe this should just be disallowed by gui?
+				return false;
+			}
+			if (GetSquareAtPos(originalPos).Unit.InConflict) {//if unit is in conflict
 				return false;
 			}
 			return true;

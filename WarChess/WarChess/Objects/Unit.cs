@@ -22,6 +22,7 @@ namespace WarChess.Objects {
 			this.Might = Might;
 			this.Will = Will;
 			this.Fate = Fate;
+			InConflict = false;
 		}//TODO add range distace
 		//TODO add max move dist
 		//TODO add dist left?
@@ -41,5 +42,7 @@ namespace WarChess.Objects {
 		public int Might { get; set; }
 		public int Will { get; set; }
 		public int Fate { get; set; }
+
+		public bool InConflict { get; set; }
 	}
 }
