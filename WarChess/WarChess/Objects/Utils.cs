@@ -37,6 +37,9 @@ namespace WarChess.Objects {
 			}
 			return rolls;
 		}
+		public static bool ResolveStrike(int strength,int defense) {
+			return RandomBoolByPercent(Config.WoundChart[strength][defense]);
+		}
 
 		public static int GenerateRandomInt(int max) {
 			return rand.Next(0, max);
