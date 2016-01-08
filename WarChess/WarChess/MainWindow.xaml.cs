@@ -24,10 +24,10 @@ namespace Project1 {
 		private List<List<Label>> labels;//TODO see if i can get rid of alot of these
 		private Button lastButton = null;//TODO should be able to be moved
 		private Label lastUnitCountLabel = null;//TODO should be able to be moved
-		private Position lastGridPositionClicked;
-		private bool isselected = false;
+		private Position SelectedPos = null;
 		Dictionary<Button, Label> UnitPlacementBtnLblMap;//TODO should this be dict or list?
-													//i only need this before the board is set. So when the main window is broken into two windows break this off
+														 //i only need this before the board is set. So when the main window is broken into two windows break this off
+		List<Button> attackButtons = new List<Button>();
 
 		public MainWindow(Game Game) {
 			InitializeComponent();
@@ -149,7 +149,6 @@ namespace Project1 {
                 labels.Add(rowlabels);
             }
 			UpdateAllSquares();
-			lastGridPositionClicked = new Position(-1, -1);
         }
 
 		private void dynClick(object sender, RoutedEventArgs e) {
@@ -189,19 +188,26 @@ namespace Project1 {
 			Position position = GetPosOfClickedCell();
 			UpdatePreview(position);
 			//TODO only show preview for non null units
-			//TODO only allow your units to be selected
 			if (Game.IsInSetup) {
 				if (lastButton != null) {
 					setguy(position);
 				}
 			} else {
-				if (Game.Phase == Game.Phases.Move) {
-					if (lastGridPositionClicked != null && isselected) {
-						perfmove(position);
-					} else {
-						isselected = true;
-						lastGridPositionClicked = position;
+				if (Game.Phase == Game.Phases.Move) {					
+					if (SelectedPos!=null && SelectedPos.Equals(position)) {//deslecting
+						labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
+						SelectedPos = null;
+						RemoveChargeOptions();
+					} else if (Game.Board.GetSquareAtPos(position).Unit.Player == Game.GetCurrentPlayer()) {//selecting your unit
+						if (SelectedPos != null) {//previously had a different unit selected
+							labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
+							RemoveChargeOptions();
+						}
+						SelectedPos = position;	
 						labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
+						DisplayChargeOptions(SelectedPos);
+					} else if (SelectedPos != null) {//moving your unit
+						perfmove(position);
 					}
 				}
 			}
@@ -218,15 +224,15 @@ namespace Project1 {
 					if (Game.GetCurrentPlayer().HasAnyUnitsLeftToPlace()) {
 						return;
 					}
-					//if done placing
-					
-					this.Game.EndTurn();
+					//if done placing					
+					Game.EndTurn();
 					UnitGrid.Children.Clear();
 					PlayerLabel.Content = Game.GetCurrentPlayer().Name;
 					UpdateAllSquares();
 					if (this.Game.IsInSetup) {
 						PopulateUnitPlacementGrid(Game.GetCurrentPlayer().UnitsToPlace.ToList());
 					} else {
+						EndTurnButton.IsEnabled = true;
 						PhaseLabel.Content = this.Game.Phase;
 						MainGrid.Children.Remove(UnitGridScroller);
 					}
@@ -234,20 +240,67 @@ namespace Project1 {
 			}
         }
 		private void perfmove(Position position) {
-			bool succ = Game.Move(lastGridPositionClicked, position);			
-			UpdateSquare(lastGridPositionClicked);
-			UpdateSquare(position);
-			isselected = false;
+			bool succ = Game.Move(SelectedPos, position);
 			if (succ) {
-				List<Square> squares = Game.Board.GetSurroundingSquares(position);//TODO make this way better. very basic charging rules
-				for (int i = 0; i < squares.Count; i++) {
-					Unit unit = squares[i].Unit;
-					if (unit!=Game.Board.NullUnit && unit.Player != Game.GetCurrentPlayer()) {
-						Game.AddConflict(unit, Game.Board.GetSquareAtPos(position).Unit);
-						return;
-					}
-				}
+				UpdateSquare(SelectedPos);
+				UpdateSquare(position);
+				SelectedPos = position;
+				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Black);
+				RemoveChargeOptions();
+				DisplayChargeOptions(SelectedPos);
 			}
+		}
+		private void RemoveChargeOptions() {
+			for(int i = 0; i < attackButtons.Count; i++) {
+				grid.Children.Remove(attackButtons[i]);
+			}
+			attackButtons.Clear();
+		}
+		private void DisplayChargeOptions(Position position) {
+			List<List<Position>> positions = Game.GetPossibleAttackPos(position);//should only ever be 2 lists in possibleattacks
+			List<Position> positionsattacked = positions[0];
+			List<Position> attackablepositions = positions[1];
+			for (int i = 0; i < positionsattacked.Count; i++) {//positions you attacked earlier this turn
+				
+				Button b = new Button();
+				{
+					b.Foreground = new SolidColorBrush(Colors.Black);
+					b.Content = "Cancel";
+					b.Margin = new Thickness(15, 30, 15, 30);
+				}
+				Grid.SetRow(b, positionsattacked[i].Row);
+				Grid.SetColumn(b, positionsattacked[i].Column);
+				grid.Children.Add(b);
+				b.Click += CancelCharge;
+				attackButtons.Add(b);
+			}
+			for (int i = 0; i < attackablepositions.Count; i++) {//positions you can attack
+				Button b = new Button();
+				{
+					b.Foreground = new SolidColorBrush(Colors.Black);
+					b.Content = "Attack";
+					b.Margin = new Thickness(15, 30, 15, 30);
+				}
+				Grid.SetRow(b, attackablepositions[i].Row);
+				Grid.SetColumn(b, attackablepositions[i].Column);
+				grid.Children.Add(b);
+				b.Click += ChargeUnit;
+				attackButtons.Add(b);
+			}
+		}
+		private void ChargeUnit(object sender, RoutedEventArgs e) {
+			Button b = (Button)sender;
+			Position defendingPosition = new Position(Grid.GetRow(b), Grid.GetColumn(b));
+			Game.AddTempConflict(Game.Board.GetSquareAtPos(defendingPosition).Unit, Game.Board.GetSquareAtPos(SelectedPos).Unit);
+			RemoveChargeOptions();
+			DisplayChargeOptions(SelectedPos);
+		}
+		private void CancelCharge(object sender, RoutedEventArgs e) {
+			Button b = (Button)sender;
+			Position defendingPosition = new Position(Grid.GetRow(b), Grid.GetColumn(b));
+			Game.RemoveTempConflict(Game.Board.GetSquareAtPos(defendingPosition).Unit, Game.Board.GetSquareAtPos(SelectedPos).Unit);
+			RemoveChargeOptions();
+			DisplayChargeOptions(SelectedPos);
 		}
 
 		private void UpdatePreview(Position position) {
@@ -304,7 +357,62 @@ namespace Project1 {
 			PlayerLabel.Content = Game.GetCurrentPlayer().Name;
 			PhaseLabel.Content = Game.Phase;
 			UpdateAllSquares();
+			RemoveChargeOptions(); //this only need to happen at the end of a move phase
+			SelectedPos = null;
+			//labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);//need to clear selected unit display?
 		}
+
+		/// <summary>
+		/// ////////////////////////////////////////////
+		/// </summary>
+		/// <param name="unit"></param>
+		/// <returns></returns>
+		private Position getUnitpos(Unit unit) {
+			for (int i = 0; i < Game.Board.Rows; i++) {
+				for (int j = 0; j < Game.Board.Columns; j++) {
+					if (Game.Board.GetSquareAtPos(new Position(i, j)).Unit==unit) {
+						return new Position(i, j);
+					}
+				}
+			}
+			return null;
+		}
+		private void button1_Click(object sender, RoutedEventArgs e) {
+			List<KeyValuePair<Unit, List<Unit>>> conflicts = Game.Conflicts.ToList();
+
+			for (int i = 0; i < conflicts.Count; i++) {
+				Position defenderpos = getUnitpos(conflicts[i].Key);
+				for (int j = 0; j < conflicts[i].Value.Count; j++) {
+					Rectangle rect = new Rectangle();
+					{
+						rect.Stroke = new SolidColorBrush(Colors.Black);
+						rect.Margin = new Thickness(10, 20, 10, 10);
+						
+					}
+					Position attackerpos = getUnitpos(conflicts[i].Value[j]);
+					
+					if (defenderpos.Row > attackerpos.Row) {//attacker is above
+						rect.SetValue(Grid.RowSpanProperty, 2);
+						Grid.SetRow(rect, attackerpos.Row);
+						Grid.SetColumn(rect, attackerpos.Column);
+					} else if (defenderpos.Column < attackerpos.Column) {//attacker is to the right
+						rect.SetValue(Grid.ColumnSpanProperty, 2);
+						Grid.SetRow(rect, defenderpos.Row);
+						Grid.SetColumn(rect, defenderpos.Column);
+					} else if (defenderpos.Row < attackerpos.Row) {//attacker is below
+						rect.SetValue(Grid.RowSpanProperty, 2);
+						Grid.SetRow(rect, defenderpos.Row);
+						Grid.SetColumn(rect, defenderpos.Column);
+					} else if (defenderpos.Column > attackerpos.Column) {//attacker is to the left
+						rect.SetValue(Grid.ColumnSpanProperty, 2);
+						Grid.SetRow(rect, attackerpos.Row);
+						Grid.SetColumn(rect, attackerpos.Column);
+					}
+					grid.Children.Add(rect);
+				}
+			}							
+		}
+		/////////////////////////////////////////////////////////////////
 	}
 }
 

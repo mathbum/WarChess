@@ -24,7 +24,7 @@ namespace WarChess.Objects {
 			}
 
 			if (firstplayerlasttime == neworder[0] || similarorder) {
-				if (GenerateRandomInt(6) == 5) {//1 out of 6 chance to get a new order. (like rolling a 6 on a d6)
+				if (RollD6(1)[0] == 6) {//1 out of 6 chance to get a new order. (like rolling a 6 on a d6)
 					neworder = players.OrderBy(item => rand.Next()).ToList(); //TODO does this re-randomize?
 				}
 			}

@@ -11,8 +11,8 @@
         <ScrollViewer x:Name="UnitGridScroller" Margin="12,197,605,294" Width="130" Height="100">
             <Grid x:Name ="UnitGrid" Background="Blue"/>
         </ScrollViewer>
-        <Button x:Name="button" Content="End Turn" HorizontalAlignment="Left" Height="46" Margin="32,407,0,0" VerticalAlignment="Top" Width="114" Click="EndTurn_Click"/>
-        <Label x:Name="PhaseLabel" Content="SeUp" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="186,27,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
+        <Button x:Name="EndTurnButton" Content="End Turn" HorizontalAlignment="Left" Height="46" Margin="32,407,0,0" VerticalAlignment="Top" Width="114" Click="EndTurn_Click" IsEnabled="False"/>
+        <Label x:Name="PhaseLabel" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="186,27,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
         <Label x:Name="PlayerLabel" Content="Player1" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="392,27,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
         <Grid HorizontalAlignment="Left" Height="137" Margin="22,34,0,0" VerticalAlignment="Top" Width="140" >
             <Border BorderBrush="Black" BorderThickness="1"/>
@@ -26,5 +26,6 @@
             <Label x:Name="UnitPlayerLbl" Content="Player" Margin="51,13,34,101"/>
             <Label x:Name="InConflictLbl" Content="InConflict?" Margin="36,104,43,10"/>
         </Grid>
+        <Button x:Name="button1" Content="Button" HorizontalAlignment="Left" Height="15" Margin="289,12,0,0" VerticalAlignment="Top" Width="49" Click="button1_Click"/>
     </Grid>
 </Window>
