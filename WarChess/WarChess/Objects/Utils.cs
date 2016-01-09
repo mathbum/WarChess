@@ -37,7 +37,7 @@ namespace WarChess.Objects {
 			}
 			return rolls;
 		}
-		public static bool ResolveStrike(int strength,int defense) {
+		public static bool ResolveStrike(int strength,int defense) {//TODO this will need to be fixed to allow for mights to alter dice rolls
 			return RandomBoolByPercent(Config.WoundChart[strength][defense]);
 		}
 

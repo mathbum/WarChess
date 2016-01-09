@@ -47,8 +47,8 @@ namespace WarChess.Objects {
 		private void SetUnit(Position position, Unit unit) {
 			this.board[position.Row][position.Column].Unit = unit;
 		}
-		private bool isValidMove(Position originalPos, Position newPos) {//,Player Player) {//TODO finish this
-			//if(Player!= GetSquareAtPos(originalPos).Unit.Player) {//TODO if it isn't your unit. Maybe this should just be disallowed by gui?
+		private bool isValidMove(Position originalPos, Position newPos) {//TODO finish this
+			//if(Player!= GetSquareAtPos(originalPos).Unit.Player) {
 			//	return false;
 			//}
 			if (GetSquareAtPos(newPos).Unit != this.NullUnit) {//TODO if you tried to move onto another unit or move to where the unit was. Maybe this should just be disallowed by gui?

@@ -21,7 +21,7 @@ namespace Project1 {
     public partial class MainWindow : Window {
 
 		private Game Game;
-		private List<List<Label>> labels;//TODO see if i can get rid of alot of these
+		private List<List<Label>> labels;
 		private Button lastButton = null;//TODO should be able to be moved
 		private Label lastUnitCountLabel = null;//TODO should be able to be moved
 		private Position SelectedPos = null;

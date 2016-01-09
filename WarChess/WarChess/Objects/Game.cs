@@ -66,15 +66,22 @@ namespace WarChess.Objects {
 		}
 
 		public bool Move(Position originalPos, Position newPos) {
-			return Board.MoveUnit(originalPos, newPos);//, GetCurrentPlayer());
+			return Board.MoveUnit(originalPos, newPos);
 		}
 
 		//only way to have three players in same conflict is if A and B are in conflict then C attacks both. In everyother case C can either only attack one or he will branch off to a new conflict
 		//when victor is chosen the player can choose who he strikes (rolls for wounds). Different types of units or if unit is trapped.  
 		//what if A has super unit. So B,C,D all attack A (but don't want to attack eachother) in this case B,C,D should be victors together? (and only be able to attack A)
-		
+
+		//TODO make tempconflicts become chargingDict. then make a tempconflicts with constant rolling of charges? (how hard is removing a charge? especially if you pulled someone from a conflict)		
+		//TODO Or everytime a charge is made or cancelled recalculate a new current conflicts dict by rolling the charges into this dict. This dict is only used for gui purposes
+
 		//TODO allow users to cancel a movement 
-		//TODO add gui to show conflicts		
+
+		//you can charge a unit only if he is not on your team, you havent been sucessfully charged and one of the following:
+			//1) you aren't charing anyone else and he isn't being charged by someone who is charging multiple units
+			//2) you are alone in your charge (you aren't charging a unit with an ally) and he is not (in conflict or being charged)
+			//3) you are alone in your charge (you aren't charging a unit with an ally) and he is in conflict with an ally (so he can be broken off to your conflict)
 
 		public List<List<Position>> GetPossibleAttackPos(Position position) {
 			Unit playersUnit = Board.GetSquareAtPos(position).Unit;
@@ -117,21 +124,19 @@ namespace WarChess.Objects {
 							} else {
 								PossibleAttackPos.Add(potentialPos);
 							}
-						}//else you can't charge anyone else						
+						}// if you aren't alone you can't charge anyone else
 					}
 				} else {
 					if (unit.InConflict) {
 						bool canBeCharged = true;
 						List<KeyValuePair<Unit, List<Unit>>> TempConflictsList = TempConflicts.ToList();
 						for (int j = 0; j < TempConflictsList.Count; j++) {
-							Unit attacker = TempConflictsList[j].Key;
-							for (int k = 0; k < TempConflictsList[j].Value.Count; k++) {
-								if (unit == TempConflictsList[j].Value[k]) {//found unit in tempconflict
-									if (TempConflictsList[j].Value.Count == 1) {//if unit is being charged alone. (attacker is only charging one unit)
-										canBeCharged = true;
-									} else {//attacker is charging more than one unit. so you can't attack him
+							List<Unit> unitsBeingCharged = TempConflictsList[j].Value;
+							for (int k = 0; k < unitsBeingCharged.Count; k++) {
+								if (unit == unitsBeingCharged[k]) {//found unit in tempconflict
+									if (unitsBeingCharged.Count > 1) {
 										canBeCharged = false;
-										break;
+										break;//TODO possibly break out of j loop? if not just take perf hit
 									}
 								}
 							}
@@ -205,8 +210,6 @@ namespace WarChess.Objects {
 		}
 
 		private void AddConflict(Unit defendingUnit, Unit attackingUnit) {
-			//defendingUnit.InConflict = true;
-			//attackingUnit.InConflict = true;
 			if (Conflicts.ContainsKey(defendingUnit)) {
 				Conflicts[defendingUnit].Add(attackingUnit);
 				return; 
@@ -296,6 +299,9 @@ namespace WarChess.Objects {
 		}
 
 		public void EndTurn() {
+			if (Phase == Phases.Move && !IsInSetup) {
+				RollInTempConflicts();
+			}
 			if (PlayerTurnIndex == Players.Count - 1) {
 				if (IsInSetup) {//TODO probably don't need this code when setup is branched off
 					IsInSetup = false;
@@ -303,16 +309,13 @@ namespace WarChess.Objects {
 					//Phase = Phases.Priority;
 				} else {
 					NextPhase();
-					if (this.Phase == Phases.Move) {
+					if (this.Phase == Phases.Move) {//start of a new round
 						//if (this.Phase == Phases.Priority) {						
 						Players = Utils.PickPriority(Players);
 					}
 				}
-				PlayerTurnIndex = 0;
+				PlayerTurnIndex = 0;//same order as in setup phase. This is okay since everyone can set up at the same time
 			} else {
-				if (this.Phase == Phases.Move) {
-					RollInTempConflicts();
-				}
 				PlayerTurnIndex += 1 ;
 			}			
 		}
