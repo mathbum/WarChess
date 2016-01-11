@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 namespace WarChess.Objects {
 	public static class Config { 
 		public static Dictionary<string, Unit> Units = new Dictionary<string, Unit> {
-			{ "Orc", new Unit("Orc",7,1,1,Allegiance.Evil,3,5,1,1,0,0,0)},
-			{ "Warrior",new Unit("Warrior",9,1,1,Allegiance.Good,3,5,1,1,0,0,0)}
+			{ "Goblin", new Unit("Goblin",4,1,1,Allegiance.Evil,2,3,5,1,1,0,0,0)},
+			//{ "Orc", new Unit("Orc",7,1,1,Allegiance.Evil,3,3,5,1,1,0,0,0)},
+			{ "Warrior",new Unit("Warrior",9,1,1,Allegiance.Good,3,3,5,1,1,0,0,0)}
 		};
 	//	public static List<List<int>> WoundChart = new List<List<int>>() {
 	//		//   DEFENSE         1   2   3   4   5   6   7   8   9  10
@@ -50,5 +51,5 @@ namespace WarChess.Objects {
 	}
 	//public class Orc : Unit { public Orc() : base("Orc", 7, 1, 1, Config.Allegiance.Evil, 3, 5, 1, 1, 0, 0, 0) { } }
 	//public class Warrior : Unit { public Warrior() : base("Warrior", 9, 1, 1, Config.Allegiance.Good, 3, 5, 1, 1, 0, 0, 0) { } }
-	public class NullUnit : Unit { public NullUnit() : base("", 0, 0, 0, Config.Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0) { } }
+	public class NullUnit : Unit { public NullUnit() : base("", 0, 0, 0, Config.Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0, 0) { } }
 }

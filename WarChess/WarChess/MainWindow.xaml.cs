@@ -23,7 +23,6 @@ namespace Project1 {
 		private Game Game;
 		private List<List<Label>> labels;
 		private Button lastButton = null;//TODO should be able to be moved
-		private Label lastUnitCountLabel = null;//TODO should be able to be moved
 		private Position SelectedPos = null;
 		Dictionary<Button, Label> UnitPlacementBtnLblMap;//TODO should this be dict or list?
 														 //i only need this before the board is set. So when the main window is broken into two windows break this off
@@ -154,7 +153,6 @@ namespace Project1 {
 
 		private void dynClick(object sender, RoutedEventArgs e) {
 			lastButton = (Button)sender;
-			lastUnitCountLabel = UnitPlacementBtnLblMap[lastButton];
 		}
 		private Position GetPosOfClickedCell() {
 			var point = Mouse.GetPosition(grid);
@@ -219,6 +217,7 @@ namespace Project1 {
 				u.Player = Game.GetCurrentPlayer();
 				if (Game.PlaceUnit(position,u)) {//if it was a legal placement of the unit					
 					UpdateSquare(position);
+					Label lastUnitCountLabel = UnitPlacementBtnLblMap[lastButton];
 					int count = int.Parse(lastUnitCountLabel.Content.ToString());
 					lastUnitCountLabel.Content = count - 1;
 
@@ -232,6 +231,7 @@ namespace Project1 {
 					UpdateAllSquares();
 					if (this.Game.IsInSetup) {
 						PopulateUnitPlacementGrid(Game.GetCurrentPlayer().UnitsToPlace.ToList());
+						lastButton = null;
 					} else {
 						EndTurnButton.IsEnabled = true;
 						PhaseLabel.Content = this.Game.Phase;
@@ -398,7 +398,7 @@ namespace Project1 {
 					Rectangle rect = new Rectangle();
 					{
 						rect.Stroke = new SolidColorBrush(Colors.Black);
-						rect.Margin = new Thickness(10, 20, 10, 10);						
+						rect.Margin = new Thickness(10, 20, 10, 20);						
 					}
 					Position attackerpos = getUnitpos(conflicts[i].Value[j]);
 					

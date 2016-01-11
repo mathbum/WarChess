@@ -5,16 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace WarChess.Objects {
-	public class Unit{
+	public class Unit {
 
 		//protected Unit() {}
 
-		public Unit(string Name,int Points,int Width,int Length,Config.Allegiance Allegiance, int Strength,int Defense,int Attacks,int Wounds,int Might,int Will,int Fate) {
+		public Unit(string Name, int Points, int Width, int Length, Config.Allegiance Allegiance, int Fighting, int Strength, int Defense, int Attacks, int Wounds, int Might, int Will, int Fate) {
 			this.Name = Name;
 			this.Points = Points;
 			this.Width = Width;
 			this.Length = Length;
 			this.Allegiance = Allegiance;
+			this.Fighting = Fighting;
 			this.Strength = Strength;
 			this.Defense = Defense;
 			this.Attacks = Attacks;
@@ -24,16 +25,16 @@ namespace WarChess.Objects {
 			this.Fate = Fate;
 			InConflict = false;
 		}//TODO add range distace
-		//TODO add max move dist
-		//TODO add dist left?
-		//TODO add max move dist while shootable
+		 //TODO add max move dist
+		 //TODO add dist left?
+		 //TODO add max move dist while shootable. put this to item
 		public Player Player { get; set; }
 		public string Name { get; protected set; }
 		public int Points { get; protected set; }
 		public int Width { get; protected set; }
 		public int Length { get; protected set; }
 		public Config.Allegiance Allegiance { get; protected set; }
-		//TODO fighting? first is handtohand fighting second is minimum roll to land a hit with range
+		public int Fighting {get;protected set;} //TODO fighting? first is handtohand fighting second is minimum roll to land a hit with range. put second number to item?
 		public int Strength { get; protected set; }
 		public int Defense { get; protected set; }
 		public int Attacks { get; protected set; }
