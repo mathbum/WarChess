@@ -32,8 +32,8 @@ namespace Project1 {
 		public MainWindow(Game Game) {
 			InitializeComponent();
 			this.Game = Game;
-			int rows = this.Game.Board.Rows;
-			int cols = this.Game.Board.Columns;
+			int rows = this.Game.GetBoardRows();
+			int cols = this.Game.GetBoardColumns();
 			PlayerLabel.Content = this.Game.GetCurrentPlayer().Name;
 			InitializeBoardGui(rows, cols);
 			PopulateUnitPlacementGrid(this.Game.GetCurrentPlayer().UnitsToPlace.ToList());
@@ -197,7 +197,7 @@ namespace Project1 {
 						labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
 						SelectedPos = null;
 						RemoveChargeOptions();
-					} else if (Game.Board.GetSquareAtPos(position).Unit.Player == Game.GetCurrentPlayer()) {//selecting your unit
+					} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
 						if (SelectedPos != null) {//previously had a different unit selected
 							labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
 							RemoveChargeOptions();
@@ -292,7 +292,7 @@ namespace Project1 {
 		private void ChargeUnit(object sender, RoutedEventArgs e) {
 			Button b = (Button)sender;
 			Position defendingPosition = new Position(Grid.GetRow(b), Grid.GetColumn(b));
-			Game.AddCharge(Game.Board.GetSquareAtPos(defendingPosition).Unit, Game.Board.GetSquareAtPos(SelectedPos).Unit);
+			Game.AddCharge(Game.GetUnitAtPos(defendingPosition), Game.GetUnitAtPos(SelectedPos));
 			RemoveChargeOptions();
 			DisplayChargeOptions(SelectedPos);
 			DisplayTempConflicts();
@@ -300,14 +300,14 @@ namespace Project1 {
 		private void CancelCharge(object sender, RoutedEventArgs e) {
 			Button b = (Button)sender;
 			Position defendingPosition = new Position(Grid.GetRow(b), Grid.GetColumn(b));
-			Game.RemoveCharge(Game.Board.GetSquareAtPos(defendingPosition).Unit, Game.Board.GetSquareAtPos(SelectedPos).Unit);
+			Game.RemoveCharge(Game.GetUnitAtPos(defendingPosition), Game.GetUnitAtPos(SelectedPos));
 			RemoveChargeOptions();
 			DisplayChargeOptions(SelectedPos);
 			DisplayTempConflicts();
 		}
 
 		private void UpdatePreview(Position position) {
-			Unit unitatpos = Game.Board.GetSquareAtPos(position).Unit;
+			Unit unitatpos = Game.GetUnitAtPos(position);
 			Namelabel.Content = unitatpos.Name;
 			Pointslabellbl.Content = unitatpos.Points;
 			Strengthlabellbl.Content = unitatpos.Strength;
@@ -329,7 +329,7 @@ namespace Project1 {
 
 
 		private void UpdateSquare(Position position) {
-			Unit unitatpos = Game.Board.GetSquareAtPos(position).Unit;
+			Unit unitatpos = Game.GetUnitAtPos(position);
 			Label labelatpos = labels[position.Row][position.Column];
 			labelatpos.Content = unitatpos.Name;
 
@@ -371,17 +371,6 @@ namespace Project1 {
 		/// </summary>
 		/// <param name="unit"></param>
 		/// <returns></returns>
-		private Position getUnitpos(Unit unit) {
-			for (int i = 0; i < Game.Board.Rows; i++) {
-				for (int j = 0; j < Game.Board.Columns; j++) {
-					if (Game.Board.GetSquareAtPos(new Position(i, j)).Unit==unit) {
-						return new Position(i, j);
-					}
-				}
-			}
-			return null;
-		}
-		//private void button1_Click(object sender, RoutedEventArgs e) {
 		private void ClearConflictsDisplay() {
 			for(int i = 0; i < conflictRectangles.Count; i++) {
 				grid.Children.Remove(conflictRectangles[i]);
@@ -390,17 +379,15 @@ namespace Project1 {
 		}
 		private void DisplayTempConflicts() {
 			ClearConflictsDisplay();
-			List<KeyValuePair<Unit, List<Unit>>> conflicts = Game.TempConflicts.ToList();
-
-			for (int i = 0; i < conflicts.Count; i++) {
-				Position defenderpos = getUnitpos(conflicts[i].Key);
-				for (int j = 0; j < conflicts[i].Value.Count; j++) {					
+			foreach(KeyValuePair<Unit,List<Unit>> conflictItem in Game.GetConflicts()) { 
+				Position defenderpos = conflictItem.Key.Position;
+				for (int j = 0; j < conflictItem.Value.Count; j++) {					
 					Rectangle rect = new Rectangle();
 					{
 						rect.Stroke = new SolidColorBrush(Colors.Black);
 						rect.Margin = new Thickness(10, 20, 10, 20);						
 					}
-					Position attackerpos = getUnitpos(conflicts[i].Value[j]);
+					Position attackerpos = conflictItem.Value[j].Position;
 					
 					if (defenderpos.Row > attackerpos.Row) {//attacker is above
 						rect.SetValue(Grid.RowSpanProperty, 2);

@@ -45,5 +45,6 @@ namespace WarChess.Objects {
 		public int Fate { get; set; }
 
 		public bool InConflict { get; set; }
+		public Position Position { get; set; }
 	}
 }

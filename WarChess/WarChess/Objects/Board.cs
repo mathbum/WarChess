@@ -46,24 +46,26 @@ namespace WarChess.Objects {
 		}
 		private void SetUnit(Position position, Unit unit) {
 			this.board[position.Row][position.Column].Unit = unit;
+			unit.Position = position;
 		}
 		private bool isValidMove(Position originalPos, Position newPos) {//TODO finish this
 			//if(Player!= GetSquareAtPos(originalPos).Unit.Player) {
 			//	return false;
 			//}
-			if (GetSquareAtPos(newPos).Unit != this.NullUnit) {//TODO if you tried to move onto another unit or move to where the unit was. Maybe this should just be disallowed by gui?
+			if (GetUnitAtPos(newPos) != this.NullUnit) {//TODO if you tried to move onto another unit or move to where the unit was. Maybe this should just be disallowed by gui?
 				return false;//TODO gui tod disallows you to move to your same position?
 			}
-			if (GetSquareAtPos(originalPos).Unit.InConflict) {//if unit is in conflict
+			if (GetUnitAtPos(originalPos).InConflict) {//if unit is in conflict
 				return false;
 			}
 			return true;
 		}
-		public bool MoveUnit(Position originalPos,Position newPos) {//,Player Player) {
-			if (isValidMove(originalPos, newPos)) {//,Player)) {
-				Unit tempUnit = GetSquareAtPos(originalPos).Unit;
+		public bool MoveUnit(Position originalPos,Position newPos) {
+			if (isValidMove(originalPos, newPos)) {
+				Unit tempUnit = GetUnitAtPos(originalPos);
 				SetUnit(newPos, tempUnit);
 				SetUnit(originalPos, NullUnit);
+				tempUnit.Position = newPos;
 				return true;
 			}
 			return false;
@@ -74,10 +76,14 @@ namespace WarChess.Objects {
 					if (board[i][j].Unit == unit) {
 						SetUnit(new Position(i, j), NullUnit);
 						Trace.WriteLine("Killed: " + unit.Name + " at pos: " +i+", "+j);
+						unit = null;//this a proper way to destroy the unit object?
 					}
 				}
 			}
 			
+		}
+		public Unit GetUnitAtPos(Position position) {
+			return GetSquareAtPos(position).Unit;
 		}
 		public Square GetSquareAtPos(Position position) {
 			//if (position.Row >= Rows || position.Column >= Columns) {
@@ -89,7 +95,7 @@ namespace WarChess.Objects {
 			List<Position> possibleattackpos = new List<Position>();
 			List<Position> possiblepos = GetSurroundingPos(position);
 			for(int i = 0; i < possiblepos.Count; i++) {
-				Unit unit = GetSquareAtPos(possiblepos[i]).Unit;
+				Unit unit = GetUnitAtPos(possiblepos[i]);
 				if (unit!=NullUnit && unit.Player != player) {
 					possibleattackpos.Add(possiblepos[i]);
 				}

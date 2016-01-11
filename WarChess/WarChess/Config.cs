@@ -5,7 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace WarChess.Objects {
-	public static class Config { 
+	public static class Config {
+		//name,points,width,length,allegiance,fighting,strength,defense,attacks,wounds,mights,wills,fates
 		public static Dictionary<string, Unit> Units = new Dictionary<string, Unit> {
 			{ "Goblin", new Unit("Goblin",4,1,1,Allegiance.Evil,2,3,5,1,1,0,0,0)},
 			//{ "Orc", new Unit("Orc",7,1,1,Allegiance.Evil,3,3,5,1,1,0,0,0)},
