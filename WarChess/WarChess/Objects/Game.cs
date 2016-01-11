@@ -17,16 +17,15 @@ namespace WarChess.Objects {
 		}
 
 		public Phases Phase { get; set; }
-		public Board Board { get; private set; }
+		public Board Board { get; private set; }//public?
 		public bool IsInSetup { get; private set; }
 		//public enum Phases { Priority, Move, Shoot, Fight };//TODO need end phase? 	do i need priotiry phase?
 		public enum Phases { Move};//TODO need end phase? 	do i need priotiry phase?
-		private List<Player> Players;// { get; set; }
-		private int PlayerTurnIndex;// { get; set; }
-		public Dictionary<Unit,List<Unit>> Conflicts = new Dictionary<Unit,List<Unit>>(); //TODO public?
-		private Dictionary<Unit, List<Unit>> TempConflicts = new Dictionary<Unit, List<Unit>>();
-
-		//TODO make temp conflicts variable that just replaces the main one after the player ends their turn		
+		private List<Player> Players;
+		private int PlayerTurnIndex;
+		private Dictionary<Unit,List<Unit>> Conflicts = new Dictionary<Unit,List<Unit>>();
+		private Dictionary<Unit, List<Unit>> Charges = new Dictionary<Unit, List<Unit>>();
+		public Dictionary<Unit, List<Unit>> TempConflicts = new Dictionary<Unit, List<Unit>>();
 
 		public bool PlaceUnit(Position position,Unit unit) {
 			bool succ = Board.PlaceUnit(position, unit);
@@ -39,7 +38,7 @@ namespace WarChess.Objects {
 						unitstoplace[unit.Name] = unitstoplace[unit.Name] - 1;
 					}
 				} else {
-					throw new ArgumentException();// someone has placed a unit that they aren't allowed to be placing
+					throw new ArgumentException();//someone has placed a unit that they aren't allowed to be placing
 				}								
 			}
 			return succ;
@@ -76,6 +75,10 @@ namespace WarChess.Objects {
 		//TODO make tempconflicts become chargingDict. then make a tempconflicts with constant rolling of charges? (how hard is removing a charge? especially if you pulled someone from a conflict)		
 		//TODO Or everytime a charge is made or cancelled recalculate a new current conflicts dict by rolling the charges into this dict. This dict is only used for gui purposes
 
+		//TODO avoid setup scrollview from going all over the place. 
+		//TODO memory useage?
+		//TODO scroll bars on grid? maybe zoom level? maybe map like AOE?
+
 		//TODO allow users to cancel a movement 
 
 		//you can charge a unit only if he is not on your team, you havent been sucessfully charged and one of the following:
@@ -93,22 +96,22 @@ namespace WarChess.Objects {
 				Unit unit = Board.GetSquareAtPos(potentialPos).Unit;
 
 				if (playersUnit.InConflict) {
-					if (!TempConflicts.ContainsKey(playersUnit)) {//if playerunit is in conflict but hasn't charged anyone this turn then they must have been charged
+					if (!Charges.ContainsKey(playersUnit)) {//if playerunit is in conflict but hasn't charged anyone this turn then they must have been charged
 						return new List<List<Position>>() { new List<Position>(), new List<Position>() };//you can't charge or cancel anyone if you have been charged previously
 					} else {
-						if (TempConflicts[playersUnit].Contains(unit)) {//if playerunit has attacked unit in this turn
+						if (Charges[playersUnit].Contains(unit)) {//if playerunit has attacked unit in this turn
 							alreadyAttackedPos.Add(potentialPos);
 							continue;
 						}
 
 						bool alone = false;
-						List<Unit> unitsPlayerIsCharging = TempConflicts[playersUnit];
+						List<Unit> unitsPlayerIsCharging = Charges[playersUnit];
 						if (unitsPlayerIsCharging.Count > 1) {//if you are charging multiple enemies then you are alone in conflict
 							alone = true;
 						} else {
 							Unit unitPlayerIsCharging = unitsPlayerIsCharging[0];
-							if (OccurancesInConflictDictValues(unitPlayerIsCharging, TempConflicts) == 1) {//if you are the only one charging "unitPlayerIsCharging"
-								if (OccurancesInConflictDictValues(unitPlayerIsCharging, Conflicts) == 0) {//if noone is attacking "unitPlayerIsCharging"
+							if (OccurancesInConflictDictValues(unitPlayerIsCharging, Charges) == 1) {//if you are the only one charging "unitPlayerIsCharging"
+								if (!ConflictDictConatinsUnit(unitPlayerIsCharging, Conflicts)) {//if noone is attacking "unitPlayerIsCharging"
 									alone = true;
 								}
 							}
@@ -116,7 +119,7 @@ namespace WarChess.Objects {
 
 						if (alone) {
 							if (unit.InConflict) {
-								if (OccurancesInConflictDictValues(unit, TempConflicts) > 0) {//if anyone is charging unit then you can't
+								if (ConflictDictConatinsUnit(unit, Charges)) {//if anyone is charging unit then you can't
 									continue;
 								}else if (OccurancesInConflictDictValues(unit, Conflicts) > 1) {//if unit isn't alone in combat so you could break them off 
 									PossibleAttackPos.Add(potentialPos);
@@ -129,11 +132,11 @@ namespace WarChess.Objects {
 				} else {
 					if (unit.InConflict) {
 						bool canBeCharged = true;
-						List<KeyValuePair<Unit, List<Unit>>> TempConflictsList = TempConflicts.ToList();
-						for (int j = 0; j < TempConflictsList.Count; j++) {
-							List<Unit> unitsBeingCharged = TempConflictsList[j].Value;
+						List<KeyValuePair<Unit, List<Unit>>> ChargeList = Charges.ToList();
+						for (int j = 0; j < ChargeList.Count; j++) {
+							List<Unit> unitsBeingCharged = ChargeList[j].Value;
 							for (int k = 0; k < unitsBeingCharged.Count; k++) {
-								if (unit == unitsBeingCharged[k]) {//found unit in tempconflict
+								if (unit == unitsBeingCharged[k]) {//found unit in Charges
 									if (unitsBeingCharged.Count > 1) {
 										canBeCharged = false;
 										break;//TODO possibly break out of j loop? if not just take perf hit
@@ -142,7 +145,7 @@ namespace WarChess.Objects {
 							}
 						}
 						if (canBeCharged) {//if he was is in conflict but not about to be charged or 
-							//if 'unit' was found in tempconflict and his attacker is only charging him
+							//if 'unit' was found in Charges and his attacker is only charging him
 							PossibleAttackPos.Add(potentialPos);
 						}
 					} else {
@@ -164,73 +167,117 @@ namespace WarChess.Objects {
 			}
 			return attackers;
 		}
-		public void AddTempConflict(Unit defendingUnit,Unit attackingUnit) {
+		private bool ConflictDictConatinsUnit(Unit unit, Dictionary<Unit, List<Unit>> ConflictDict) {
+			List<KeyValuePair<Unit, List<Unit>>> DictConflictsList = ConflictDict.ToList();
+			for (int i = 0; i < DictConflictsList.Count; i++) {
+				for (int j = 0; j < DictConflictsList[i].Value.Count; j++) {
+					if (unit == DictConflictsList[i].Value[j]) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+		public void AddCharge(Unit defendingUnit,Unit attackingUnit) {
 			defendingUnit.InConflict = true;
 			attackingUnit.InConflict = true;
-			if (TempConflicts.ContainsKey(attackingUnit)) {
-				TempConflicts[attackingUnit].Add(defendingUnit);
+			if (Charges.ContainsKey(attackingUnit)) {
+				Charges[attackingUnit].Add(defendingUnit);
 			} else {
-				TempConflicts[attackingUnit] = new List<Unit>() { defendingUnit };
+				Charges[attackingUnit] = new List<Unit>() { defendingUnit };
+			}
+			AddConflictToTempConficts(defendingUnit, attackingUnit);//TODO for gui
+		}
+		private void CloneConflictDict(Dictionary<Unit,List<Unit>> DictToCloneTo, Dictionary<Unit, List<Unit>> DictToClone) {
+			DictToCloneTo.Clear();
+			List<KeyValuePair<Unit, List<Unit>>> DictToCloneList = DictToClone.ToList();
+			for (int i = 0; i < DictToCloneList.Count; i++) {
+				Unit unitKey = DictToCloneList[i].Key;
+				List<Unit> newValueList = new List<Unit>();
+				List<Unit> unitList = DictToCloneList[i].Value;
+				for (int j = 0; j < unitList.Count; j++) {
+					newValueList.Add(unitList[j]);
+				}					
+				DictToCloneTo[unitKey] = newValueList;
 			}
 		}
-		public void RemoveTempConflict(Unit defendingUnit, Unit attackingUnit) {
-			List<Unit> unitsAttackedByAttacker = TempConflicts[attackingUnit];
-			unitsAttackedByAttacker.Remove(defendingUnit);
-			if (unitsAttackedByAttacker.Count == 0) {
-				attackingUnit.InConflict = false;
-				TempConflicts.Remove(attackingUnit);
+		public void RemoveCharge(Unit defendingUnit, Unit chargingUnit) {			
+			List<Unit> unitsChargedByAttacker = Charges[chargingUnit];
+			unitsChargedByAttacker.Remove(defendingUnit);
+			if (unitsChargedByAttacker.Count == 0) {
+				chargingUnit.InConflict = false;
+				Charges.Remove(chargingUnit);
 			}
-			List<KeyValuePair<Unit, List<Unit>>> ConflictList = Conflicts.ToList();
-			for (int i = 0; i < ConflictList.Count; i++) {//check if defending unit is in conflict
-				for (int j = 0; j < ConflictList[i].Value.Count; j++) {
-					if (defendingUnit == ConflictList[i].Value[j]) {
-						return;
-					}
-				}
+
+			CloneConflictDict(TempConflicts, Conflicts);//this resets tempconflics so the gui can use it. could i make a rolling tempconflicts?
+			RollInCharges();
+
+			if (Conflicts.ContainsKey(defendingUnit) || ConflictDictConatinsUnit(defendingUnit, Conflicts)) {
+				return;//defending unit is not in conflict as a key or value
 			}
-			List<KeyValuePair<Unit, List<Unit>>> TempConflictList = TempConflicts.ToList();
-			for(int i = 0; i < TempConflictList.Count; i++) {//check if defending unit is in tempconflict
-				for(int j = 0; j < TempConflictList[i].Value.Count; j++) {
-					if (defendingUnit == TempConflictList[i].Value[j]) {
-						return;
-					}
-				}				
+			if (ConflictDictConatinsUnit(defendingUnit, Charges)) {//becuase its not possible that defending unit is the charging unit
+				return;//defending unit is in Charges (values)
 			}
-			defendingUnit.InConflict = false;//couldn't be found in either conflict list
-		}
-		private void RollInTempConflicts() {
-			List<KeyValuePair<Unit, List<Unit>>> TempConflictsList = TempConflicts.ToList();
-			for(int i = 0; i < TempConflictsList.Count;i++) {
-				Unit attacker = TempConflictsList[i].Key;
-				for(int j = 0; j < TempConflictsList[i].Value.Count; j++) {
-					AddConflict(attacker,TempConflictsList[i].Value[j]);
-				}
-			}
-			TempConflicts.Clear();
+
+			defendingUnit.InConflict = false;//couldn't be found in either conflicts or charges
 		}
 
-		private void AddConflict(Unit defendingUnit, Unit attackingUnit) {
-			if (Conflicts.ContainsKey(defendingUnit)) {
-				Conflicts[defendingUnit].Add(attackingUnit);
+		private void SolidifyCharges() {
+			CloneConflictDict(Conflicts, TempConflicts);
+			Charges.Clear();
+		}
+
+		private void RollInCharges() {
+			List<KeyValuePair<Unit, List<Unit>>> ChargeList = Charges.ToList();
+			for(int i = 0; i < ChargeList.Count;i++) {
+				Unit attacker = ChargeList[i].Key;
+				for(int j = 0; j < ChargeList[i].Value.Count; j++) {
+					AddConflictToTempConficts(attacker,ChargeList[i].Value[j]);
+				}
+			}
+			//Charges.Clear();
+		}
+
+		private void AddConflictToTempConficts(Unit defendingUnit, Unit attackingUnit) {
+			if (TempConflicts.ContainsKey(defendingUnit)) {
+				TempConflicts[defendingUnit].Add(attackingUnit);
 				return; 
 			}
-			if (Conflicts.ContainsKey(attackingUnit)) {//attacking unit charges three Units (or more)
-				Conflicts[attackingUnit].Add(defendingUnit);
+			if (TempConflicts.ContainsKey(attackingUnit)) {//attacking unit charges three Units (or more) or attacking unit charges two units then removes the charge then charges another unit
+				TempConflicts[attackingUnit].Add(defendingUnit);
 				return;
-			}			
-			
-			List<KeyValuePair<Unit, List<Unit>>> ConflictList = Conflicts.ToList();
-			for (int i=0; i < ConflictList.Count; i++){
+			}
+
+			//foreach(KeyValuePair<Unit,List<Unit>> Conflict in TempConflicts) {
+			//	List<Unit> unitsBeingAttackedList = Conflict.Value;
+			//	for (int j = 0; j < unitsBeingAttackedList.Count; j++) {
+			//		if (unitsBeingAttackedList[j] == defendingUnit) {
+			//			//Unit OtherUnit = ConflictList[j].Key;
+			//			Unit OtherUnit = Conflict.Key;
+			//			if (unitsBeingAttackedList.Count > 1) {//if defending unit is in conflict already and not alone, remove from conflict and is key in new conflict and attacker becomes value
+			//				TempConflicts[OtherUnit].Remove(defendingUnit);
+			//				TempConflicts[defendingUnit] = new List<Unit>() { attackingUnit };
+			//			} else {//if defending unit is in conflict already and alone then defending unit becomes key and attacking unit and old key become value
+			//				TempConflicts.Remove(OtherUnit);
+			//				TempConflicts[defendingUnit] = new List<Unit> { OtherUnit, attackingUnit };
+			//			}
+			//			return;
+			//		}
+			//	}
+			//}
+			List<KeyValuePair<Unit, List<Unit>>> ConflictList = TempConflicts.ToList();
+			for (int i = 0; i < ConflictList.Count; i++) {
 				List<Unit> attackingUnitList = ConflictList[i].Value;
 				for (int j = 0; j < attackingUnitList.Count; j++) {
 					if (attackingUnitList[j] == defendingUnit) {
-						Unit OtherUnit = ConflictList[j].Key;
-						if (attackingUnitList.Count > 1) {//if defending unit is in conflict already and not alone removed from conflict and is key in new conflict and attacker becomes value
-							Conflicts[OtherUnit].Remove(defendingUnit);
-							Conflicts[defendingUnit]= new List<Unit>() { attackingUnit };
+						//Unit OtherUnit = ConflictList[j].Key;
+						Unit OtherUnit = ConflictList[i].Key;
+						if (attackingUnitList.Count > 1) {//if defending unit is in conflict already and not alone, remove from conflict and is key in new conflict and attacker becomes value
+							TempConflicts[OtherUnit].Remove(defendingUnit);
+							TempConflicts[defendingUnit] = new List<Unit>() { attackingUnit };
 						} else {//if defending unit is in conflict already and alone then defending unit becomes key and attacking unit and old key become value
-							Conflicts.Remove(OtherUnit);
-							Conflicts[defendingUnit] = new List<Unit> { OtherUnit, attackingUnit };							
+							TempConflicts.Remove(OtherUnit);
+							TempConflicts[defendingUnit] = new List<Unit> { OtherUnit, attackingUnit };
 						}
 						return;
 					}
@@ -238,17 +285,21 @@ namespace WarChess.Objects {
 			}
 
 			//if defending unit isn't in conflict then it is key and attacker is value
-			Conflicts[defendingUnit] = new List<Unit>() { attackingUnit };
+			TempConflicts[defendingUnit] = new List<Unit>() { attackingUnit };
 
 			//TODO: Add Three Way combat (highest combat possible though not possible with the block model)
 			//A and B are fighting and C attacks both. D attacks A. It matters if A or B are key to determine if its A,B,C,D or if its A,D B,C					
 		}
 		public void ResolveAllConflicts() {
+			//foreach (KeyValuePair<Unit, List<Unit>> Conflict in Conflicts) {
+			//	ResolveConflict(Conflict);
+			//}
 			List<KeyValuePair<Unit, List<Unit>>> Conflicts1List = Conflicts.ToList();
 			for (int i = 0; i < Conflicts1List.Count; i++) {
 				ResolveConflict(Conflicts1List[i]);
 			}
 			Conflicts.Clear();
+			TempConflicts.Clear();
 		}
 		public void ResolveConflict(KeyValuePair<Unit,List<Unit>> Conflict) {
 			Unit struckUnit = null;//TODO multiple different units can be struck. Let user choose
@@ -300,7 +351,8 @@ namespace WarChess.Objects {
 
 		public void EndTurn() {
 			if (Phase == Phases.Move && !IsInSetup) {
-				RollInTempConflicts();
+				//RollInCharges();
+				SolidifyCharges();
 			}
 			if (PlayerTurnIndex == Players.Count - 1) {
 				if (IsInSetup) {//TODO probably don't need this code when setup is branched off
@@ -310,7 +362,6 @@ namespace WarChess.Objects {
 				} else {
 					NextPhase();
 					if (this.Phase == Phases.Move) {//start of a new round
-						//if (this.Phase == Phases.Priority) {						
 						Players = Utils.PickPriority(Players);
 					}
 				}

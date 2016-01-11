@@ -28,6 +28,7 @@ namespace Project1 {
 		Dictionary<Button, Label> UnitPlacementBtnLblMap;//TODO should this be dict or list?
 														 //i only need this before the board is set. So when the main window is broken into two windows break this off
 		List<Button> attackButtons = new List<Button>();
+		List<Rectangle> conflictRectangles = new List<Rectangle>();
 
 		public MainWindow(Game Game) {
 			InitializeComponent();
@@ -291,16 +292,18 @@ namespace Project1 {
 		private void ChargeUnit(object sender, RoutedEventArgs e) {
 			Button b = (Button)sender;
 			Position defendingPosition = new Position(Grid.GetRow(b), Grid.GetColumn(b));
-			Game.AddTempConflict(Game.Board.GetSquareAtPos(defendingPosition).Unit, Game.Board.GetSquareAtPos(SelectedPos).Unit);
+			Game.AddCharge(Game.Board.GetSquareAtPos(defendingPosition).Unit, Game.Board.GetSquareAtPos(SelectedPos).Unit);
 			RemoveChargeOptions();
 			DisplayChargeOptions(SelectedPos);
+			DisplayTempConflicts();
 		}
 		private void CancelCharge(object sender, RoutedEventArgs e) {
 			Button b = (Button)sender;
 			Position defendingPosition = new Position(Grid.GetRow(b), Grid.GetColumn(b));
-			Game.RemoveTempConflict(Game.Board.GetSquareAtPos(defendingPosition).Unit, Game.Board.GetSquareAtPos(SelectedPos).Unit);
+			Game.RemoveCharge(Game.Board.GetSquareAtPos(defendingPosition).Unit, Game.Board.GetSquareAtPos(SelectedPos).Unit);
 			RemoveChargeOptions();
 			DisplayChargeOptions(SelectedPos);
+			DisplayTempConflicts();
 		}
 
 		private void UpdatePreview(Position position) {
@@ -359,6 +362,7 @@ namespace Project1 {
 			UpdateAllSquares();
 			RemoveChargeOptions(); //this only need to happen at the end of a move phase
 			SelectedPos = null;
+			DisplayTempConflicts();
 			//labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);//need to clear selected unit display?
 		}
 
@@ -377,17 +381,24 @@ namespace Project1 {
 			}
 			return null;
 		}
-		private void button1_Click(object sender, RoutedEventArgs e) {
-			List<KeyValuePair<Unit, List<Unit>>> conflicts = Game.Conflicts.ToList();
+		//private void button1_Click(object sender, RoutedEventArgs e) {
+		private void ClearConflictsDisplay() {
+			for(int i = 0; i < conflictRectangles.Count; i++) {
+				grid.Children.Remove(conflictRectangles[i]);
+			}
+			conflictRectangles.Clear();
+		}
+		private void DisplayTempConflicts() {
+			ClearConflictsDisplay();
+			List<KeyValuePair<Unit, List<Unit>>> conflicts = Game.TempConflicts.ToList();
 
 			for (int i = 0; i < conflicts.Count; i++) {
 				Position defenderpos = getUnitpos(conflicts[i].Key);
-				for (int j = 0; j < conflicts[i].Value.Count; j++) {
+				for (int j = 0; j < conflicts[i].Value.Count; j++) {					
 					Rectangle rect = new Rectangle();
 					{
 						rect.Stroke = new SolidColorBrush(Colors.Black);
-						rect.Margin = new Thickness(10, 20, 10, 10);
-						
+						rect.Margin = new Thickness(10, 20, 10, 10);						
 					}
 					Position attackerpos = getUnitpos(conflicts[i].Value[j]);
 					
@@ -409,6 +420,7 @@ namespace Project1 {
 						Grid.SetColumn(rect, attackerpos.Column);
 					}
 					grid.Children.Add(rect);
+					conflictRectangles.Add(rect);
 				}
 			}							
 		}

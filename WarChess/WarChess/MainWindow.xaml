@@ -26,6 +26,5 @@
             <Label x:Name="UnitPlayerLbl" Content="Player" Margin="51,13,34,101"/>
             <Label x:Name="InConflictLbl" Content="InConflict?" Margin="36,104,43,10"/>
         </Grid>
-        <Button x:Name="button1" Content="Button" HorizontalAlignment="Left" Height="15" Margin="289,12,0,0" VerticalAlignment="Top" Width="49" Click="button1_Click"/>
     </Grid>
 </Window>
