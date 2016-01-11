@@ -24,8 +24,6 @@ namespace Project1 {
 		private List<List<Label>> labels;
 		private Button lastButton = null;//TODO should be able to be moved
 		private Position SelectedPos = null;
-		Dictionary<Button, Label> UnitPlacementBtnLblMap;//TODO should this be dict or list?
-														 //i only need this before the board is set. So when the main window is broken into two windows break this off
 		List<Button> attackButtons = new List<Button>();
 		List<Rectangle> conflictRectangles = new List<Rectangle>();
 
@@ -42,7 +40,6 @@ namespace Project1 {
 			UnitGrid.Children.Clear();//think i need this
 			UnitGrid.RowDefinitions.Clear();
 			UnitGrid.ColumnDefinitions.Clear();
-			UnitPlacementBtnLblMap = new Dictionary<Button, Label>();
 			ColumnDefinition gridCol = new ColumnDefinition();
 			gridCol.Width = new GridLength(75);
 			UnitGrid.ColumnDefinitions.Add(gridCol);
@@ -55,24 +52,6 @@ namespace Project1 {
 				gridRow.Height = new GridLength(25);
 				UnitGrid.RowDefinitions.Add(gridRow);
 
-				Button b2 = new Button();
-				{
-					b2.Width = 75;
-					b2.Height = 25;
-					b2.Foreground = new SolidColorBrush(Colors.Black);
-					b2.Content = UnitCount[i].Key;
-					b2.FontSize = 10;
-					//l2.Margin = new Thickness(0, 0, 0, 0);
-					b2.VerticalAlignment = VerticalAlignment.Center;
-					b2.HorizontalAlignment = HorizontalAlignment.Center;
-					b2.VerticalContentAlignment = VerticalAlignment.Center;
-					b2.HorizontalContentAlignment = HorizontalAlignment.Center;
-				}
-				Grid.SetRow(b2, i);
-				Grid.SetColumn(b2, 0);
-				UnitGrid.Children.Add(b2);
-				b2.Click += dynClick;				
-
 				Label l2 = new Label();
 				{
 					l2.Width = 45;
@@ -80,7 +59,6 @@ namespace Project1 {
 					l2.Foreground = new SolidColorBrush(Colors.White);
 					l2.Content = UnitCount[i].Value;
 					l2.FontSize = 10;
-					//l2.Margin = new Thickness(0, 0, 0, 0);
 					l2.VerticalAlignment = VerticalAlignment.Center;
 					l2.HorizontalAlignment = HorizontalAlignment.Center;
 					l2.VerticalContentAlignment = VerticalAlignment.Center;
@@ -90,7 +68,24 @@ namespace Project1 {
 				Grid.SetRow(l2, i);
 				Grid.SetColumn(l2, 1);
 				UnitGrid.Children.Add(l2);
-				UnitPlacementBtnLblMap[b2]= l2;
+
+				Button b2 = new Button();
+				{
+					b2.Width = 75;
+					b2.Height = 25;
+					b2.Foreground = new SolidColorBrush(Colors.Black);
+					b2.Content = UnitCount[i].Key;
+					b2.FontSize = 10;
+					b2.VerticalAlignment = VerticalAlignment.Center;
+					b2.HorizontalAlignment = HorizontalAlignment.Center;
+					b2.VerticalContentAlignment = VerticalAlignment.Center;
+					b2.HorizontalContentAlignment = HorizontalAlignment.Center;
+				}
+				Grid.SetRow(b2, i);
+				Grid.SetColumn(b2, 0);
+				UnitGrid.Children.Add(b2);
+				b2.Click += dynClick;
+				b2.Tag = l2;
 			}
         }
 
@@ -217,7 +212,7 @@ namespace Project1 {
 				u.Player = Game.GetCurrentPlayer();
 				if (Game.PlaceUnit(position,u)) {//if it was a legal placement of the unit					
 					UpdateSquare(position);
-					Label lastUnitCountLabel = UnitPlacementBtnLblMap[lastButton];
+					Label lastUnitCountLabel = (Label) lastButton.Tag;
 					int count = int.Parse(lastUnitCountLabel.Content.ToString());
 					lastUnitCountLabel.Content = count - 1;
 
@@ -414,26 +409,3 @@ namespace Project1 {
 		/////////////////////////////////////////////////////////////////
 	}
 }
-
-        //private void button_Click(object sender, RoutedEventArgs e) {
-        //    label.Content = "hello";
-        //    Button btn = new Button();{
-        //        btn.Name = "mybutton";
-        //        btn.Height = 20;
-        //        btn.Width = 50;
-        //        btn.Foreground = new SolidColorBrush(Colors.White);
-        //        btn.Content = "btnnum" + num.ToString();
-        //        btn.Tag = num;
-        //        btn.Content = "Browse-" + num.ToString();
-        //        btn.Margin = new Thickness(0, 0, 0, 0);
-        //        //btn.VerticalAlignment = Windows.UI.Xaml.VerticalAlignment.Top;
-        //    }
-        //    Grid.SetRow(btn, 0);
-        //    Grid.SetColumn(btn, num);
-        //    grid.Children.Add(btn);
-        //    btn.Click += btn_Click;
-        //    num++;
-        //}    
-        //void btn_Click(object sender, RoutedEventArgs e) {
-        //    label.Content = "works?";
-        //}
