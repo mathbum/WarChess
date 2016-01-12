@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace WarChess.Objects.TerrainObjs {
-	class ShortWall : Terrain {
-		public ShortWall() {
-			Standable = false;
+	class Grass : Terrain {
+		public Grass() {
+			Standable = true;
 			SeeThrough = true;
 			Shootable = true;
-			Jumpable = true;
+			Jumpable = false;
 			Speed = 1;
 		}
 	}

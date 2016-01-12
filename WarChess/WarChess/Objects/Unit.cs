@@ -6,9 +6,6 @@ using System.Threading.Tasks;
 
 namespace WarChess.Objects {
 	public class Unit {
-
-		//protected Unit() {}
-
 		public Unit(string Name, int Points, int Width, int Length, Config.Allegiance Allegiance, int Fighting, int Strength, int Defense, int Attacks, int Wounds, int Might, int Will, int Fate) {
 			this.Name = Name;
 			this.Points = Points;
@@ -23,11 +20,10 @@ namespace WarChess.Objects {
 			this.Might = Might;
 			this.Will = Will;
 			this.Fate = Fate;
-			InConflict = false;
-		}//TODO add range distace
+		}
 		 //TODO add max move dist
 		 //TODO add dist left?
-		 //TODO add max move dist while shootable. put this to item
+		 //TODO max move dist while shootable. put this to item
 		public Player Player { get; set; }
 		public string Name { get; protected set; }
 		public int Points { get; protected set; }
@@ -44,7 +40,8 @@ namespace WarChess.Objects {
 		public int Will { get; set; }
 		public int Fate { get; set; }
 
-		public bool InConflict { get; set; }
+		public int MaxMoveDist { get; private set; } = 3;
+		public bool InConflict { get; set; } = false;
 		public Position Position { get; set; }
 	}
 }

@@ -11,7 +11,7 @@ namespace WarChess.Objects.TerrainObjs {
 			SeeThrough = false;
 			Shootable = false;
 			Jumpable = false;
-			Speed = 0;
+			Speed = -1;
 		}
 		//make a private get and set?
 		//add length and width?

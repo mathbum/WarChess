@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using WarChess.Objects;
+using WarChess.Objects.TerrainObjs;
 
 namespace Project1 {
     /// <summary>
@@ -80,9 +82,35 @@ namespace Project1 {
 		}
 
         private void button_Click(object sender, RoutedEventArgs e) {
-            int rows = int.Parse(trows.Text);
-            int cols = int.Parse(tcols.Text);
-			Board board = new Board(rows, cols);
+			//Player p = new Player("p1", null);
+			//Unit u1 = new Unit("mover", 0, 0, 0, Config.Allegiance.Evil, 0, 0, 0, 0, 0, 0, 0, 0);
+			//u1.Player = p;
+			//u1.Position = new Position(0, 1);
+			//Unit u2 = new Unit("dude", 0, 0, 0, Config.Allegiance.Evil, 0, 0, 0, 0, 0, 0, 0, 0);
+			//u2.Player = p;
+			//Board b = new Board(4, 4);
+			//b.board[1][1].Terrain = new TallWall();
+			//b.board[2][2].Unit = new Unit("asdf", 0, 0, 0, Config.Allegiance.Evil, 0, 0, 0, 0, 0, 0, 0, 0);
+			//b.board[0][0].Unit = u2;
+			//BoardManager bm = new BoardManager(b);
+			//List<KeyValuePair<Position,int>> l = bm.GetMoveablePos(u1);
+			//for (int i = 0; i < l.Count; i++) {
+			//	Trace.Write(l[i].Key.Row + ", "+ l[i].Key.Column+": "+ l[i].Value+"\n");
+			//}
+			////List<List<int>> l = bm.FindDistancesHelper(b,u1,new Position(0, 1));
+			////for (int i = 0; i < l.Count; i++) {
+			////	for (int j = 0; j < l[i].Count; j++) {
+			////		Trace.Write(l[i][j] + " ");
+			////	}
+			////	Trace.Write("\n");
+			////}
+
+
+
+
+			int rows = int.Parse(trows.Text);
+			int cols = int.Parse(tcols.Text);
+			BoardManager board = new BoardManager(rows, cols);
 
 			Dictionary<string, int> UnitCount1 = new Dictionary<string, int>();
 			Dictionary<string, int> UnitCount2 = new Dictionary<string, int>();
@@ -97,11 +125,11 @@ namespace Project1 {
 			List<Player> Players = new List<Player>();
 			Players.Add(new Player(player1txtbox.Text, UnitCount1));
 			Players.Add(new Player(player2txtbox.Text, UnitCount2));
-			Game game = new Game(board,Players);
+			Game game = new Game(board, Players);
 			MainWindow mw = new MainWindow(game);
-            mw.Show();
+			mw.Show();
 			this.Close();
-        }
+		}
 
 		private void UnitsTextChanged(object sender, TextChangedEventArgs e) {
 			int points = 0;

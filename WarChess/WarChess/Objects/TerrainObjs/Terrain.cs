@@ -12,4 +12,5 @@ namespace WarChess.Objects.TerrainObjs {
 		public bool Jumpable;
 		public int Speed;
 	}
+	//TODO make terrain objects just like units. Why have a class for each?
 }

@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 namespace WarChess.Objects {
 	public class Game {//static?
 		
-		public Game(Board Board,List<Player> players) {
-			this.Board = Board;
+		public Game(BoardManager BoardManager,List<Player> players) {
+			this.BoardManager = BoardManager;
 			List<Player> PlayerOrder = Utils.PickPriority(players);
 			this.Players = PlayerOrder;
 		}
 
 		public Phases Phase { get; set; }
-		private Board Board { get; set; }
+		private BoardManager BoardManager { get; set; }
 		public bool IsInSetup { get; private set; } = true;
 		//public enum Phases { Priority, Move, Shoot, Fight };//TODO need end phase? 	do i need priotiry phase?
 		public enum Phases { Move};//TODO need end phase? 	do i need priotiry phase?
@@ -24,7 +24,7 @@ namespace WarChess.Objects {
 		private ConflictManager conflictManager = new ConflictManager();
 
 		public bool PlaceUnit(Position position,Unit unit) {
-			bool succ = Board.PlaceUnit(position, unit);
+			bool succ = BoardManager.PlaceUnit(position, unit);
 			if (succ) {
 				Dictionary<string, int> unitstoplace = GetCurrentPlayer().UnitsToPlace;
 				if (unitstoplace.ContainsKey(unit.Name)) {//this should always be true. 					
@@ -40,13 +40,13 @@ namespace WarChess.Objects {
 			return succ;
 		}
 		public int GetBoardRows() {
-			return Board.Rows;
+			return BoardManager.GetRows();
 		}
 		public int GetBoardColumns() {
-			return Board.Columns;
+			return BoardManager.GetColumns();
 		}
 		public Unit GetUnitAtPos(Position position) {
-			return Board.GetUnitAtPos(position);
+			return BoardManager.GetUnitAtPos(position);
 		}
 		public Player GetCurrentPlayer() {
 			return Players[PlayerTurnIndex];
@@ -70,7 +70,10 @@ namespace WarChess.Objects {
 		}
 
 		public bool Move(Position originalPos, Position newPos) {
-			return Board.MoveUnit(originalPos, newPos);
+			return BoardManager.MoveUnit(originalPos, newPos);
+		}
+		public List<KeyValuePair<Position, int>> GetMoves(Position position) {
+			return BoardManager.GetMoveablePos(BoardManager.GetUnitAtPos(position));
 		}
 
 		//TODO avoid setup scrollview from going all over the place. 
@@ -80,19 +83,19 @@ namespace WarChess.Objects {
 		//TODO allow users to cancel a movement 
 
 		public List<List<Position>> GetPossibleAttackPos(Position position) {
-			Unit playersUnit = Board.GetUnitAtPos(position);
+			Unit playersUnit = BoardManager.GetUnitAtPos(position);
 			if (playersUnit.InConflict) {
 				if (!conflictManager.ChargesContainsKey(playersUnit)) {//if playerunit is in conflict but hasn't charged anyone this turn then they must have been charged (and thus attacked)
 					return new List<List<Position>>() { new List<Position>(), new List<Position>() };//you can't charge or cancel anyone if you have been charged previously
 				}
 			}
 
-			List<Position> surroundingUnitPos = Board.GetPossibleAttackPos(position, GetCurrentPlayer());
+			List<Position> surroundingUnitPos = BoardManager.GetPossibleAttackPos(position, GetCurrentPlayer());
 			List<Position> alreadyAttackedPos = new List<Position>();
 			List<Position> PossibleAttackPos = new List<Position>();
 			for (int i = 0; i < surroundingUnitPos.Count; i++) {
 				Position potentialPos = surroundingUnitPos[i];
-				Unit unit = Board.GetUnitAtPos(potentialPos);
+				Unit unit = BoardManager.GetUnitAtPos(potentialPos);
 				if (conflictManager.IsUnitChargingDefendingUnit(playersUnit,unit)) {
 					alreadyAttackedPos.Add(potentialPos);//if playerunit has attacked 'unit' in this turn
 				} else if (conflictManager.IsValidAttack(playersUnit, unit)) {//already know playersunit hasn't been charged or hasn't charged unit
@@ -136,7 +139,7 @@ namespace WarChess.Objects {
 			}
 			struckUnit.Wounds -= WoundsInflicted;
 			if (struckUnit.Wounds < 1) {
-				Board.KillUnit(struckUnit);
+				BoardManager.KillUnit(struckUnit);
 			}
 
 			Conflict.Key.InConflict = false;

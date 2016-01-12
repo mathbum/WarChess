@@ -192,14 +192,17 @@ namespace Project1 {
 						labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
 						SelectedPos = null;
 						RemoveChargeOptions();
+						RemoveMoveOptions();
 					} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
 						if (SelectedPos != null) {//previously had a different unit selected
 							labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
 							RemoveChargeOptions();
+							RemoveMoveOptions();
 						}
 						SelectedPos = position;	
 						labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
 						DisplayChargeOptions(SelectedPos);
+						DisplayMoveOptions(SelectedPos);
 					} else if (SelectedPos != null) {//moving your unit
 						perfmove(position);
 					}
@@ -242,8 +245,38 @@ namespace Project1 {
 				UpdateSquare(position);
 				SelectedPos = position;
 				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Black);
-				RemoveChargeOptions();
+				RemoveChargeOptions();				
 				DisplayChargeOptions(SelectedPos);
+				RemoveMoveOptions();
+				DisplayMoveOptions(SelectedPos);
+				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Black);//HACK
+			}
+		}
+		private void RemoveMoveOptions() {
+			UpdateAllSquares();
+			//for (int i = 0; i < labels.Count; i++) {
+			//	for (int j = 0; j < labels[i].Count; j++) {
+			//		Position position = new Position(i, j);
+			//		Color color = Colors.Green;
+			//		if(Game.GetUnitAtPos(position).Player==Game.GetCurrentPlayer()
+			//		labels[i][j].Background = null;
+			//	}
+			//}
+		}
+		private void DisplayMoveOptions(Position position) {
+			List<KeyValuePair<Position,int>> moves = Game.GetMoves(position);
+			for (int i = 0; i < moves.Count; i++) {
+				int cost = moves[i].Value;
+				Position movePosition = moves[i].Key;
+				Color color = Colors.Violet;//nullish
+				if (cost == 1) {
+					color = Colors.GreenYellow;
+				}else if (cost == 2) {
+					color = Colors.Orange;
+				}else if (cost == 3) {
+					color = Colors.OrangeRed;
+				}
+				labels[movePosition.Row][movePosition.Column].Background = new SolidColorBrush(color);
 			}
 		}
 		private void RemoveChargeOptions() {
@@ -290,6 +323,8 @@ namespace Project1 {
 			Game.AddCharge(Game.GetUnitAtPos(defendingPosition), Game.GetUnitAtPos(SelectedPos));
 			RemoveChargeOptions();
 			DisplayChargeOptions(SelectedPos);
+			RemoveMoveOptions();
+			//DisplayMoveOptions(SelectedPos);
 			DisplayTempConflicts();
 		}
 		private void CancelCharge(object sender, RoutedEventArgs e) {
@@ -298,6 +333,8 @@ namespace Project1 {
 			Game.RemoveCharge(Game.GetUnitAtPos(defendingPosition), Game.GetUnitAtPos(SelectedPos));
 			RemoveChargeOptions();
 			DisplayChargeOptions(SelectedPos);
+			RemoveMoveOptions();
+			DisplayMoveOptions(SelectedPos);
 			DisplayTempConflicts();
 		}
 
@@ -307,7 +344,7 @@ namespace Project1 {
 			Pointslabellbl.Content = unitatpos.Points;
 			Strengthlabellbl.Content = unitatpos.Strength;
 			Defenselabellbl.Content = unitatpos.Defense;
-			if (unitatpos is NullUnit || unitatpos == null) {
+			if (unitatpos == Config.NullUnit || unitatpos == null) {
 				UnitPlayerLbl.Content = "None";
 			} else {
 				UnitPlayerLbl.Content = unitatpos.Player.Name;
@@ -328,7 +365,7 @@ namespace Project1 {
 			Label labelatpos = labels[position.Row][position.Column];
 			labelatpos.Content = unitatpos.Name;
 
-			if(!(unitatpos is NullUnit)) {
+			if(!(unitatpos == Config.NullUnit)) {
 				if (unitatpos.Player == Game.GetCurrentPlayer()) {
 					labelatpos.Background = new SolidColorBrush(Colors.Green);
 				} else {
@@ -356,6 +393,7 @@ namespace Project1 {
 			PhaseLabel.Content = Game.Phase;
 			UpdateAllSquares();
 			RemoveChargeOptions(); //this only need to happen at the end of a move phase
+			RemoveMoveOptions();
 			SelectedPos = null;
 			DisplayTempConflicts();
 			//labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);//need to clear selected unit display?

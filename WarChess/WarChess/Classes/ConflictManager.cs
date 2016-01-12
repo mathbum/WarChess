@@ -9,6 +9,8 @@ namespace WarChess.Objects {
 		//only way to have three players in same conflict is if A and B are in conflict then C attacks both. In everyother case C can either only attack one or he will branch off to a new conflict
 		//when victor is chosen the player can choose who he strikes (rolls for wounds). Different types of units or if unit is trapped.  
 		//what if A has super unit. So B,C,D all attack A (but don't want to attack eachother) in this case B,C,D should be victors together? (and only be able to attack A)
+		//TODO maybe can only break off if > fighting?
+
 		public Dictionary<Unit, List<Unit>> Conflicts { get; private set; } = new Dictionary<Unit, List<Unit>>();
 		private Dictionary<Unit, List<Unit>> Charges { get; set; } = new Dictionary<Unit, List<Unit>>();
 		public Dictionary<Unit, List<Unit>> TempConflicts { get; private set; } = new Dictionary<Unit, List<Unit>>();
