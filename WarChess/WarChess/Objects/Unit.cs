@@ -43,5 +43,6 @@ namespace WarChess.Objects {
 		public int MaxMoveDist { get; private set; } = 3;
 		public bool InConflict { get; set; } = false;
 		public Position Position { get; set; }
+		public int MovementLeft { get; set; } = 3;
 	}
 }

@@ -22,6 +22,7 @@ namespace WarChess.Objects {
 		private List<Player> Players;
 		private int PlayerTurnIndex = 0;
 		private ConflictManager conflictManager = new ConflictManager();
+		private List<KeyValuePair<Position, int>> CurrentMoveOptions;
 
 		public bool PlaceUnit(Position position,Unit unit) {
 			bool succ = BoardManager.PlaceUnit(position, unit);
@@ -70,10 +71,17 @@ namespace WarChess.Objects {
 		}
 
 		public bool Move(Position originalPos, Position newPos) {
-			return BoardManager.MoveUnit(originalPos, newPos);
+			int cost = 0;
+			for(int i = 0; i < CurrentMoveOptions.Count; i++) {
+				if (CurrentMoveOptions[i].Key.Equals(newPos)) {
+					cost = CurrentMoveOptions[i].Value;
+				}
+			}
+			return BoardManager.MoveUnit(originalPos, newPos,cost);
 		}
 		public List<KeyValuePair<Position, int>> GetMoves(Position position) {
-			return BoardManager.GetMoveablePos(BoardManager.GetUnitAtPos(position));
+			CurrentMoveOptions = BoardManager.GetMoveablePos(BoardManager.GetUnitAtPos(position));
+			return CurrentMoveOptions;
 		}
 
 		//TODO avoid setup scrollview from going all over the place. 
@@ -147,7 +155,20 @@ namespace WarChess.Objects {
 				Conflict.Value[i].InConflict = false;
 			}
 		}
-
+		public List<Position> GetJumpablePos(Position position) {
+			return BoardManager.GetJumpablePos(position);
+		}
+		public Position Jump(Unit unit,Position position) {
+			int roll = Utils.RollD6(1)[0];
+			//update unit movement left
+			if (roll == 1) {
+				BoardManager.KillUnit(unit);
+				return null;
+			}else if (roll < 6) {
+				unit.MovementLeft = 0;
+			}//if roll==6 then leave their movement amount alone
+			return BoardManager.Jump(unit, position);						
+		}
 		private bool WereAttackersVictorious(KeyValuePair<Unit, List<Unit>> Conflict) {
 			int DefenderRolls = Conflict.Key.Attacks;
 			int AttackerRolls = 0;
@@ -178,6 +199,7 @@ namespace WarChess.Objects {
 		public void EndTurn() {
 			if (Phase == Phases.Move && !IsInSetup) {
 				conflictManager.SolidifyCharges();
+				BoardManager.SolidifyMoves();
 			}
 			if (PlayerTurnIndex == Players.Count - 1) {
 				if (IsInSetup) {//TODO probably don't need this code when setup is branched off
@@ -188,6 +210,7 @@ namespace WarChess.Objects {
 					NextPhase();
 					if (this.Phase == Phases.Move) {//start of a new round
 						Players = Utils.PickPriority(Players);
+						BoardManager.ResetAllMoveability();
 					}
 				}
 				PlayerTurnIndex = 0;//same order as in setup phase. This is okay since everyone can set up at the same time

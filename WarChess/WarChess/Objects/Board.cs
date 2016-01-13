@@ -16,22 +16,36 @@ namespace WarChess.Objects {
 			for (int i = 0; i < rows; i++) {
 				List<Square> row = new List<Square>();
 				for (int j = 0; j < cols; j++) {
-					row.Add(new Square(new Grass(), Config.NullUnit));//TODO flyweight the terrain
+					row.Add(new Square(Config.TerrainObjs[' '], Config.NullUnit));
 				}
 				board.Add(row);
 			}
 			Rows = rows;
 			Columns = cols;
 		}
+		public Board(List<string> BarrenBoard) {
+			board = new List<List<Square>>();
+			Rows = BarrenBoard.Count;
+			Columns = BarrenBoard[0].Length;//TODO check to make sure at leaset one row?
+			for (int i = 0; i < Rows; i++) {
+				List<Square> row = new List<Square>();
+				for (int j = 0; j < Columns; j++) {
+					row.Add(new Square(Config.TerrainObjs[BarrenBoard[i][j]], Config.NullUnit));
+				}
+				board.Add(row);
+			}
+		}
 		private bool isValidMove(Position originalPos, Position newPos) {//TODO finish this
 			//if (Player!= GetSquareAtPos(originalPos).Unit.Player) {
 				//	return false;
 			//}
-			if (GetUnitAtPos(newPos) != Config.NullUnit) {//TODO if you tried to move onto another unit or move to where the unit was. Maybe this should just be disallowed by gui?
-				return false;//TODO gui tod disallows you to move to your same position?
-			}
-			if (GetUnitAtPos(originalPos).InConflict) {//if unit is in conflict
+			Square square = GetSquareAtPos(newPos);//this is duplicate code
+			if (square.Unit != Config.NullUnit || !square.Terrain.IsStandable) {//TODO if you tried to move onto another unit or move to where the unit was. Maybe this should just be disallowed by gui?
 				return false;
+			}
+
+			if (GetUnitAtPos(originalPos).InConflict) {//if unit is in conflict
+				return false;//this happen?
 			}
 			return true;
 		}
@@ -39,11 +53,53 @@ namespace WarChess.Objects {
 			if (isValidMove(originalPos, newPos)) {
 				Unit tempUnit = GetUnitAtPos(originalPos);
 				SetUnit(newPos, tempUnit);
-				SetUnit(originalPos, Config.NullUnit);
-				tempUnit.Position = newPos;
+				board[originalPos.Row][originalPos.Column].Unit = Config.NullUnit;
 				return true;
 			}
 			return false;
+		}
+		public Position GetNextPosInDirection(Position p1,Position p2) {//TODO SERIOUS PROBLEMS WITH THIS, LIKE DOESNT EVEN WORK SOMETIMES. 
+			int RowDiff = p2.Row - p1.Row;//can only jump left to right i think.
+			int ColumnDiff = p2.Column - p1.Column;
+			int newRow = p1.Row + RowDiff;
+			int newCol = p2.Column + ColumnDiff;
+			if(newRow>=0 && newRow<Rows && newCol>=0 && newCol < Columns) {
+				return new Position(newRow,newCol);
+			}
+			return null;
+		}
+		public void ResetAllMoveability() {
+			for(int i = 0; i < Rows; i++) {
+				for(int j=0;j< Columns; j++) {
+					Unit unit = GetUnitAtPos(new Position(i, j));
+					unit.MovementLeft = unit.MaxMoveDist;
+				}
+			}
+		}
+		public Position Jump(Unit unit,Position position) {//any validation?
+			Position nextPos = GetNextPosInDirection(unit.Position, position);
+			MoveUnit(unit.Position, nextPos);//STOP THIS
+			int cost = GetSquareAtPos(position).Terrain.Speed + GetSquareAtPos(nextPos).Terrain.Speed;
+			unit.MovementLeft=unit.MovementLeft - cost;
+			return nextPos;
+		}
+		public List<Position> GetJumpablePos(Position position,int initCost) {
+			List<Position> possiblePos = GetSurroundingPos(position);
+			List<Position> JumpablePos = new List<Position>();
+			Unit unit = GetUnitAtPos(position);
+			for (int i = 0; i < possiblePos.Count; i++) {
+				Square square = GetSquareAtPos(possiblePos[i]);
+				if (square.Terrain.IsJumpable) {
+					Position pos = GetNextPosInDirection(position, possiblePos[i]);
+					Square nextSquare = GetSquareAtPos(pos);
+					int cost = square.Terrain.Speed + nextSquare.Terrain.Speed + initCost;
+					if (unit.MovementLeft >= cost && nextSquare.Terrain.IsStandable && nextSquare.Unit==Config.NullUnit) {
+						//TODO if the square after it in same direction is standable and has no units. and unit has enough move left. then you can jump it
+						JumpablePos.Add(possiblePos[i]);
+					}
+				}
+			}
+			return JumpablePos;
 		}
 		public void KillUnit(Unit unit) {
 			for (int i = 0; i < board.Count; i++) {
@@ -68,10 +124,11 @@ namespace WarChess.Objects {
 			return isValidPlacement;
 		}
 		private bool IsValidPlacement(Position position) {//TODO finish this. with legal placement areas etc...
-			if (board[position.Row][position.Column].Unit == Config.NullUnit) {
-				return true;
+			Square square = GetSquareAtPos(position);
+			if (square.Unit != Config.NullUnit || !square.Terrain.IsStandable) {
+				return false;
 			}
-			return false;
+			return true;
 		}
 		public Unit GetUnitAtPos(Position position) {
 			return GetSquareAtPos(position).Unit;
@@ -82,7 +139,6 @@ namespace WarChess.Objects {
 			//}
 			return board[position.Row][position.Column];
 		}
-
 		public List<Position> GetSurroundingPos(Position position) {
 			List<Position> surroundingSquares = new List<Position>();
 			if (position.Row - 1 >= 0) {//up

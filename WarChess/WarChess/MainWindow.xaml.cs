@@ -24,8 +24,9 @@ namespace Project1 {
 		private List<List<Label>> labels;
 		private Button lastButton = null;//TODO should be able to be moved
 		private Position SelectedPos = null;
-		List<Button> attackButtons = new List<Button>();
-		List<Rectangle> conflictRectangles = new List<Rectangle>();
+		private List<Button> attackButtons = new List<Button>();
+		private List<Rectangle> conflictRectangles = new List<Rectangle>();
+		private List<Button> JumpButtons = new List<Button>();
 
 		public MainWindow(Game Game) {
 			InitializeComponent();
@@ -198,11 +199,13 @@ namespace Project1 {
 							labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
 							RemoveChargeOptions();
 							RemoveMoveOptions();
+							RemoveJumpOptions();
 						}
 						SelectedPos = position;	
 						labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
 						DisplayChargeOptions(SelectedPos);
 						DisplayMoveOptions(SelectedPos);
+						DisplayJumpOptions(SelectedPos);
 					} else if (SelectedPos != null) {//moving your unit
 						perfmove(position);
 					}
@@ -244,12 +247,51 @@ namespace Project1 {
 				UpdateSquare(SelectedPos);
 				UpdateSquare(position);
 				SelectedPos = position;
-				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Black);
+				//labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Black);
 				RemoveChargeOptions();				
 				DisplayChargeOptions(SelectedPos);
 				RemoveMoveOptions();
 				DisplayMoveOptions(SelectedPos);
+				RemoveJumpOptions();
+				DisplayJumpOptions(SelectedPos);
 				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Black);//HACK
+			}
+		}
+		private void RemoveJumpOptions() {
+			for (int i = 0; i < JumpButtons.Count; i++) {
+				grid.Children.Remove(JumpButtons[i]);
+			}
+			JumpButtons.Clear();
+		}
+		private void DisplayJumpOptions(Position position) {
+			List<Position> JumpOptions = Game.GetJumpablePos(position);
+			for (int i = 0; i < JumpOptions.Count; i++) {//positions you can attack
+				Button b = new Button();
+				{
+					b.Foreground = new SolidColorBrush(Colors.Black);
+					b.Content = "Jump";
+					b.Margin = new Thickness(15, 30, 15, 30);
+				}
+				Grid.SetRow(b, JumpOptions[i].Row);
+				Grid.SetColumn(b, JumpOptions[i].Column);
+				grid.Children.Add(b);
+				b.Click += JumpTerrain;
+				JumpButtons.Add(b);
+			}
+		}
+		private void JumpTerrain(object sender, RoutedEventArgs e) {
+			Button b = (Button)sender;
+			Position position = new Position(Grid.GetRow(b), Grid.GetColumn(b));
+			SelectedPos = Game.Jump(Game.GetUnitAtPos(SelectedPos),position);
+			if (SelectedPos != null) {
+				UpdateAllSquares();//also get new movement options?
+				RemoveChargeOptions();
+				DisplayChargeOptions(SelectedPos);
+				RemoveMoveOptions();
+				DisplayMoveOptions(SelectedPos);
+				DisplayTempConflicts();
+				RemoveJumpOptions();
+				DisplayJumpOptions(SelectedPos);
 			}
 		}
 		private void RemoveMoveOptions() {
@@ -269,7 +311,9 @@ namespace Project1 {
 				int cost = moves[i].Value;
 				Position movePosition = moves[i].Key;
 				Color color = Colors.Violet;//nullish
-				if (cost == 1) {
+				if (cost == 0) {
+					color = Colors.White;
+				}else if (cost == 1) {
 					color = Colors.GreenYellow;
 				}else if (cost == 2) {
 					color = Colors.Orange;
@@ -326,6 +370,8 @@ namespace Project1 {
 			RemoveMoveOptions();
 			//DisplayMoveOptions(SelectedPos);
 			DisplayTempConflicts();
+			RemoveJumpOptions();
+			//DisplayJumpOptions(SelectedPos);
 		}
 		private void CancelCharge(object sender, RoutedEventArgs e) {
 			Button b = (Button)sender;
@@ -336,6 +382,8 @@ namespace Project1 {
 			RemoveMoveOptions();
 			DisplayMoveOptions(SelectedPos);
 			DisplayTempConflicts();
+			RemoveJumpOptions();
+			DisplayJumpOptions(SelectedPos);
 		}
 
 		private void UpdatePreview(Position position) {

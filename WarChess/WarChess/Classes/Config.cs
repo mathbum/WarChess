@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WarChess.Objects.TerrainObjs;
 
 namespace WarChess.Objects {
 	public static class Config {
@@ -11,8 +12,12 @@ namespace WarChess.Objects {
 			{ "Goblin", new Unit("Goblin",4,1,1,Allegiance.Evil,2,3,5,1,1,0,0,0)},
 			//{ "Orc", new Unit("Orc",7,1,1,Allegiance.Evil,3,3,5,1,1,0,0,0)},
 			{ "Warrior",new Unit("Warrior",9,1,1,Allegiance.Good,3,3,5,1,1,0,0,0)}
-		};
+		};//DO I HAVE AN EXTRA INSTANCE OF EVERY UNIT?
 		public static Unit NullUnit = new Unit("", 0, 0, 0, Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0, 0);
+		public static Dictionary<char, Terrain> TerrainObjs = new Dictionary<char, Terrain> {
+			{' ',new Terrain("Grass",true,true,false,1) },
+			{'u',new Terrain("Short Wall",false,true,true,1) }
+		};//probably going to have to make this like nullunit so you can tell terrain types
 		//	public static List<List<int>> WoundChart = new List<List<int>>() {
 		//		//   DEFENSE         1   2   3   4   5   6   7   8   9  10
 		//			new List<int>(){ 4,  5,  5,  6,  6, 64, 65, 66, -1, -1}, /*1*/

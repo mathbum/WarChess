@@ -105,12 +105,19 @@ namespace Project1 {
 			////	Trace.Write("\n");
 			////}
 
+			List<string> b = new List<string>() {
+				"     ",
+				"  u  ",
+				"u    ",
+				"     "
+			};
+			Board board = new Board(b);
 
 
-
-			int rows = int.Parse(trows.Text);
-			int cols = int.Parse(tcols.Text);
-			BoardManager board = new BoardManager(rows, cols);
+			//int rows = int.Parse(trows.Text);
+			//int cols = int.Parse(tcols.Text);
+			//BoardManager BM = new BoardManager(rows, cols);
+			BoardManager BM = new BoardManager(board);
 
 			Dictionary<string, int> UnitCount1 = new Dictionary<string, int>();
 			Dictionary<string, int> UnitCount2 = new Dictionary<string, int>();
@@ -125,7 +132,7 @@ namespace Project1 {
 			List<Player> Players = new List<Player>();
 			Players.Add(new Player(player1txtbox.Text, UnitCount1));
 			Players.Add(new Player(player2txtbox.Text, UnitCount2));
-			Game game = new Game(board, Players);
+			Game game = new Game(BM, Players);
 			MainWindow mw = new MainWindow(game);
 			mw.Show();
 			this.Close();

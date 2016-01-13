@@ -6,9 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using WarChess.Objects.TerrainObjs;
 
-namespace WarChess.Objects {//TODO become board manager, board object, movement manager?
+namespace WarChess.Objects {
 	public class BoardManager {//TODO have flyweight pattern for terrain objs and maybe squares if i can think of how
-		private Board Board;//TODO make temp board variable that just replaces the main one after the player ends their turn
+		private Board Board;
+		private Dictionary<Position,KeyValuePair<Position,int>> Moves = new Dictionary<Position, KeyValuePair<Position,int>>();
 		public BoardManager(int rows, int cols) {
 			Board = new Board(rows, cols);
 		}
@@ -30,38 +31,68 @@ namespace WarChess.Objects {//TODO become board manager, board object, movement 
 		public Square GetSquareAtPos(Position position) {
 			return Board.GetSquareAtPos(position);
 		}
-		public bool MoveUnit(Position originalPos, Position newPos) {
-			return Board.MoveUnit(originalPos, newPos);
+		public bool MoveUnit(Position originalPos, Position newPos,int cost) {
+			bool isValidMove = Board.MoveUnit(originalPos, newPos);
+			if (isValidMove) {
+				
+				if (Moves.ContainsKey(originalPos)) {
+					Moves[newPos] = new KeyValuePair<Position,int>(Moves[originalPos].Key, cost);
+					Moves.Remove(originalPos);
+				} else {
+					Moves[newPos] = new KeyValuePair<Position,int> (originalPos, cost);
+				}			
+			}
+			return isValidMove;
 		}
 		public void KillUnit(Unit unit) {
 			Board.KillUnit(unit);
 		}
+		public void SolidifyMoves() {
+			foreach (KeyValuePair<Position, KeyValuePair<Position, int>> move in Moves) {//isn't tested
+				Unit unit = Board.GetUnitAtPos(move.Key);
+				unit.MovementLeft = unit.MovementLeft - move.Value.Value;
+			}
+			Moves.Clear();
+		}
+		public void ResetAllMoveability() {
+			Board.ResetAllMoveability();
+		}
+		public Position Jump(Unit unit,Position position) {
+			Moves.Remove(unit.Position);
+			return Board.Jump(unit,position);
+		}
+		public List<Position> GetJumpablePos(Position position) {
+			int initCost = 0;
+			if (Moves.ContainsKey(position)) {//if they moved to get here
+				initCost = Moves[position].Value;
+			}
+			return Board.GetJumpablePos(position,initCost);
+		}
+			
+		//TODO can a unit charge when they jumped or climbed?
 
-		//TODO can a unit change a move when the jumped or climbed?
-		//TODO dictionary mapping of units to position?
-
-		//TODO make cancelable moves.
-		//TODO units can move as far as many times as the want beucase you are basing it off of their current position which is updated on moves.
 		public List<KeyValuePair<Position, int>> GetMoveablePos(Unit unit) {
+			Position originalUnitPos = unit.Position;
+			if (Moves.ContainsKey(originalUnitPos)) {//if the unit moved this turn
+				originalUnitPos = Moves[originalUnitPos].Key;//make the function base it upon their original position
+			}
 			List<KeyValuePair<Position, int>> PossibleMoves = new List<KeyValuePair<Position, int>>();
 			if (unit.InConflict) {
 				return PossibleMoves;
 			}
-			List<List<int>> Distances = FindDistancesHelper(Board, unit);
+			List<List<int>> Distances = FindDistancesHelper(Board, unit, originalUnitPos);
 			for (int i = 0; i < Distances.Count; i++) {
 				for (int j = 0; j < Distances[i].Count; j++) {
 					int Distance = Distances[i][j];
 					Position position = new Position(i, j);
-					if (Distance!=-1 && Board.GetUnitAtPos(position)==Config.NullUnit && !unit.Position.Equals(position)) {
+					if (Distance!=-1 && Board.GetUnitAtPos(position)==Config.NullUnit) {
 						PossibleMoves.Add(new KeyValuePair<Position,int>(position,Distance));
 					}
 				}
 			}
 			return PossibleMoves;
 		}
-
-		private List<List<int>> FindDistancesHelper(Board board,Unit unit) {
-			Position position = unit.Position;
+		private List<List<int>> FindDistancesHelper(Board board,Unit unit,Position position) {
 			List<List<int>> distances = new List<List<int>>();
 			for(int i = 0; i < board.Rows; i++) {
 				List<int> row = new List<int>();
@@ -83,11 +114,11 @@ namespace WarChess.Objects {//TODO become board manager, board object, movement 
 				int row = surrpos[i].Row;
 				int col = surrpos[i].Column;
 				Square newSquare = board.GetSquareAtPos(surrpos[i]);
-				if (newSquare.Terrain.Speed == -1 || (newSquare.Unit != Config.NullUnit && newSquare.Unit.Player!=unit.Player)) {
+				if (!newSquare.Terrain.IsStandable || (newSquare.Unit != Config.NullUnit && newSquare.Unit.Player!=unit.Player)) {
 					continue;
 				}
 				int newCost = currentCost + newSquare.Terrain.Speed;
-				if (((newCost != -1 && distances[row][col]==-1) || newCost<distances[row][col])&&newCost<=unit.MaxMoveDist) {
+				if (((newCost != -1 && distances[row][col]==-1) || newCost<distances[row][col])&&newCost<=unit.MovementLeft) {
 					distances[row][col] = newCost;
 					distances = FindDistances(board, distances, unit, surrpos[i]);
 				}

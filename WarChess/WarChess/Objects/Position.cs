@@ -19,11 +19,23 @@ namespace WarChess.Objects {
 		public bool IsNull() {
 			return Row < 0 || Column < 0;
 		}
-		public bool Equals(Position p) {
+		public override bool Equals(Object p) {
 			if ((object)p == null) {
 				return false;
 			}
-			return (Row == p.Row) && (Column == p.Column);
+			Position pos = (Position)p;
+			return (Row == pos.Row) && (Column == pos.Column);
+		}
+		public override int GetHashCode() {
+			unchecked // Overflow is fine, just wrap
+			{
+				int hash = 17;
+				// Suitable nullity checks etc, of course :)
+				hash = hash * 29 + Row.GetHashCode();
+				hash = hash * 29 + Column.GetHashCode();
+				return hash;
+			}
+			//return base.GetHashCode();
 		}
 	}
 }
