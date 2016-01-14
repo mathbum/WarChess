@@ -13,7 +13,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using WarChess.Objects;
-using WarChess.Objects.TerrainObjs;
 
 namespace Project1 {
     /// <summary>
@@ -25,6 +24,7 @@ namespace Project1 {
 			init();
         }
 		private List<KeyValuePair<TextBox, string>> AllUnitCountList;
+		private BoardMaker BoardMaker = new BoardMaker();
 		private void init() {
 			//UnitGrid.Width = cols * 75;
 			//grid.HorizontalAlignment = HorizontalAlignment.Left;
@@ -53,7 +53,6 @@ namespace Project1 {
 					l2.Foreground = new SolidColorBrush(Colors.White);
 					l2.Content = UnitOptions[i];
 					l2.FontSize = 10;
-					//l2.Margin = new Thickness(0, 0, 0, 0);
 					l2.VerticalAlignment = VerticalAlignment.Center;
 					l2.HorizontalAlignment = HorizontalAlignment.Center;
 					l2.VerticalContentAlignment = VerticalAlignment.Center;
@@ -80,44 +79,20 @@ namespace Project1 {
 				AllUnitCountList.Add(new KeyValuePair<TextBox, string>(txtbox, UnitOptions[i]));
 			}
 		}
-
-        private void button_Click(object sender, RoutedEventArgs e) {
-			//Player p = new Player("p1", null);
-			//Unit u1 = new Unit("mover", 0, 0, 0, Config.Allegiance.Evil, 0, 0, 0, 0, 0, 0, 0, 0);
-			//u1.Player = p;
-			//u1.Position = new Position(0, 1);
-			//Unit u2 = new Unit("dude", 0, 0, 0, Config.Allegiance.Evil, 0, 0, 0, 0, 0, 0, 0, 0);
-			//u2.Player = p;
-			//Board b = new Board(4, 4);
-			//b.board[1][1].Terrain = new TallWall();
-			//b.board[2][2].Unit = new Unit("asdf", 0, 0, 0, Config.Allegiance.Evil, 0, 0, 0, 0, 0, 0, 0, 0);
-			//b.board[0][0].Unit = u2;
-			//BoardManager bm = new BoardManager(b);
-			//List<KeyValuePair<Position,int>> l = bm.GetMoveablePos(u1);
-			//for (int i = 0; i < l.Count; i++) {
-			//	Trace.Write(l[i].Key.Row + ", "+ l[i].Key.Column+": "+ l[i].Value+"\n");
-			//}
-			////List<List<int>> l = bm.FindDistancesHelper(b,u1,new Position(0, 1));
-			////for (int i = 0; i < l.Count; i++) {
-			////	for (int j = 0; j < l[i].Count; j++) {
-			////		Trace.Write(l[i][j] + " ");
-			////	}
-			////	Trace.Write("\n");
-			////}
-
-			List<string> b = new List<string>() {
-				"     ",
-				"  u  ",
-				"u    ",
-				"     "
-			};
-			Board board = new Board(b);
-
-
-			//int rows = int.Parse(trows.Text);
-			//int cols = int.Parse(tcols.Text);
-			//BoardManager BM = new BoardManager(rows, cols);
-			BoardManager BM = new BoardManager(board);
+		private void button_Click(object sender, RoutedEventArgs e) {
+			BoardManager BM;
+			if ((bool) BoardLoaderRad.IsChecked) {
+				string loadertext = BoardLoader.Text;
+				if (loadertext == "Custom") {
+					BM = new BoardManager(new Board(BoardMaker.board));
+				} else {
+					BM = new BoardManager(new Board(Config.Boards[loadertext]));
+				}
+			} else {
+				int rows = int.Parse(trows.Text);
+				int cols = int.Parse(tcols.Text);
+				BM = new BoardManager(rows, cols);
+			}
 
 			Dictionary<string, int> UnitCount1 = new Dictionary<string, int>();
 			Dictionary<string, int> UnitCount2 = new Dictionary<string, int>();
@@ -135,6 +110,7 @@ namespace Project1 {
 			Game game = new Game(BM, Players);
 			MainWindow mw = new MainWindow(game);
 			mw.Show();
+			BoardMaker.Close();
 			this.Close();
 		}
 
@@ -147,6 +123,14 @@ namespace Project1 {
 				} catch { }
 			}
 			PointsLabel.Content = points;
+		}		
+		private void BuildBoard_Click(object sender, RoutedEventArgs e) {
+			BoardLoader.Text = "Custom";
+			BoardLoaderRad.IsChecked = true;
+			BoardMaker.Show();
+		}
+		protected override void OnClosing(System.ComponentModel.CancelEventArgs e) {
+			BoardMaker.Close();
 		}
 	}
 }

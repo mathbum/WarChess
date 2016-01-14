@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WarChess.Objects.TerrainObjs;
 
 namespace WarChess.Objects {
 	public class Board {
@@ -11,7 +10,7 @@ namespace WarChess.Objects {
 		public int Rows { get; private set; }
 		public int Columns { get; private set; }
 
-		public Board(int rows, int cols) {//TODO add ability to set up a board from something other than a blank slate
+		public Board(int rows, int cols) {
 			board = new List<List<Square>>();
 			for (int i = 0; i < rows; i++) {
 				List<Square> row = new List<Square>();
@@ -35,22 +34,21 @@ namespace WarChess.Objects {
 				board.Add(row);
 			}
 		}
-		private bool isValidMove(Position originalPos, Position newPos) {//TODO finish this
-			//if (Player!= GetSquareAtPos(originalPos).Unit.Player) {
-				//	return false;
-			//}
+		private bool isValidMove(Position originalPos, Position newPos, int cost) {//TODO finish this
+			////if (Player!= GetSquareAtPos(originalPos).Unit.Player) {
+			//	//	return false;
+			////}
 			Square square = GetSquareAtPos(newPos);//this is duplicate code
-			if (square.Unit != Config.NullUnit || !square.Terrain.IsStandable) {//TODO if you tried to move onto another unit or move to where the unit was. Maybe this should just be disallowed by gui?
-				return false;
+			if (/*square.Unit != Config.NullUnit || */!square.Terrain.IsStandable || cost==-1 || GetUnitAtPos(originalPos).MovementLeft<cost) {
+				return false;//if you tried moving onto non standable terrain. if the cost to get there is out of reach, or if you don't have enough moveleft.
 			}
-
-			if (GetUnitAtPos(originalPos).InConflict) {//if unit is in conflict
-				return false;//this happen?
-			}
+			//if (GetUnitAtPos(originalPos).InConflict) {//if unit is in conflict
+			//	return false;//this happen?
+			//}
 			return true;
 		}
-		public bool MoveUnit(Position originalPos, Position newPos) {
-			if (isValidMove(originalPos, newPos)) {
+		public bool MoveUnit(Position originalPos, Position newPos, int cost) {
+			if (isValidMove(originalPos, newPos, cost)) {
 				Unit tempUnit = GetUnitAtPos(originalPos);
 				SetUnit(newPos, tempUnit);
 				board[originalPos.Row][originalPos.Column].Unit = Config.NullUnit;
@@ -58,10 +56,10 @@ namespace WarChess.Objects {
 			}
 			return false;
 		}
-		public Position GetNextPosInDirection(Position p1,Position p2) {//TODO SERIOUS PROBLEMS WITH THIS, LIKE DOESNT EVEN WORK SOMETIMES. 
-			int RowDiff = p2.Row - p1.Row;//can only jump left to right i think.
-			int ColumnDiff = p2.Column - p1.Column;
-			int newRow = p1.Row + RowDiff;
+		public Position GetNextPosInDirection(Position p1,Position p2) {
+			int RowDiff = p2.Row > p1.Row?1: (p2.Row < p1.Row?-1:0);//force it to only move 1 square
+			int ColumnDiff = p2.Column > p1.Column?1: (p2.Column < p1.Column?-1:0);
+			int newRow = p2.Row + RowDiff;
 			int newCol = p2.Column + ColumnDiff;
 			if(newRow>=0 && newRow<Rows && newCol>=0 && newCol < Columns) {
 				return new Position(newRow,newCol);
@@ -76,26 +74,33 @@ namespace WarChess.Objects {
 				}
 			}
 		}
-		public Position Jump(Unit unit,Position position) {//any validation?
+		public Position Jump(Unit unit,Position position,int initCost) {//any validation?
 			Position nextPos = GetNextPosInDirection(unit.Position, position);
-			MoveUnit(unit.Position, nextPos);//STOP THIS
-			int cost = GetSquareAtPos(position).Terrain.Speed + GetSquareAtPos(nextPos).Terrain.Speed;
-			unit.MovementLeft=unit.MovementLeft - cost;
+			if (nextPos != null) {
+				int cost = initCost + GetSquareAtPos(position).Terrain.Speed + GetSquareAtPos(nextPos).Terrain.Speed;
+				bool worked = MoveUnit(unit.Position, nextPos, cost);
+				if (!worked) {//if the move for some reason fails
+					throw new ArgumentException();
+				}
+				unit.MovementLeft = unit.MovementLeft - cost;				
+			}
 			return nextPos;
 		}
 		public List<Position> GetJumpablePos(Position position,int initCost) {
 			List<Position> possiblePos = GetSurroundingPos(position);
 			List<Position> JumpablePos = new List<Position>();
 			Unit unit = GetUnitAtPos(position);
-			for (int i = 0; i < possiblePos.Count; i++) {
+			for (int i = 0; i < possiblePos.Count; i++) {//if the square after it in same direction is standable and has no units. and unit has enough move left. then you can jump it
 				Square square = GetSquareAtPos(possiblePos[i]);
 				if (square.Terrain.IsJumpable) {
 					Position pos = GetNextPosInDirection(position, possiblePos[i]);
-					Square nextSquare = GetSquareAtPos(pos);
-					int cost = square.Terrain.Speed + nextSquare.Terrain.Speed + initCost;
-					if (unit.MovementLeft >= cost && nextSquare.Terrain.IsStandable && nextSquare.Unit==Config.NullUnit) {
-						//TODO if the square after it in same direction is standable and has no units. and unit has enough move left. then you can jump it
-						JumpablePos.Add(possiblePos[i]);
+					if (pos != null) {
+						Square nextSquare = GetSquareAtPos(pos);
+						int cost = square.Terrain.Speed + nextSquare.Terrain.Speed + initCost;
+						if (unit.MovementLeft >= cost && nextSquare.Terrain.IsStandable && nextSquare.Unit == Config.NullUnit) {
+							//TODO give horses buff on 1 deep jumps and able to make two deep jumps and large units can walk over single deep jumpable terrain
+							JumpablePos.Add(possiblePos[i]);
+						}
 					}
 				}
 			}

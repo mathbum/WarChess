@@ -46,6 +46,9 @@ namespace WarChess.Objects {
 		public int GetBoardColumns() {
 			return BoardManager.GetColumns();
 		}
+		public Terrain GetTerrainAtPos(Position position) {
+			return BoardManager.GetSquareAtPos(position).Terrain;
+		}
 		public Unit GetUnitAtPos(Position position) {
 			return BoardManager.GetUnitAtPos(position);
 		}
@@ -71,15 +74,16 @@ namespace WarChess.Objects {
 		}
 
 		public bool Move(Position originalPos, Position newPos) {
-			int cost = 0;
+			int cost = -1;
 			for(int i = 0; i < CurrentMoveOptions.Count; i++) {
 				if (CurrentMoveOptions[i].Key.Equals(newPos)) {
 					cost = CurrentMoveOptions[i].Value;
+					break;
 				}
 			}
-			return BoardManager.MoveUnit(originalPos, newPos,cost);
+			return BoardManager.MoveUnit(originalPos, newPos, cost);
 		}
-		public List<KeyValuePair<Position, int>> GetMoves(Position position) {
+		public List<KeyValuePair<Position, int>> GetMoves(Position position) {//TODO don't call this right after you move a unit
 			CurrentMoveOptions = BoardManager.GetMoveablePos(BoardManager.GetUnitAtPos(position));
 			return CurrentMoveOptions;
 		}
@@ -160,14 +164,23 @@ namespace WarChess.Objects {
 		}
 		public Position Jump(Unit unit,Position position) {
 			int roll = Utils.RollD6(1)[0];
-			//update unit movement left
+			
 			if (roll == 1) {
 				BoardManager.KillUnit(unit);
 				return null;
-			}else if (roll < 6) {
+			}
+			int initCost = 0;
+			for (int i = 0; i < CurrentMoveOptions.Count; i++) {
+				if (CurrentMoveOptions[i].Key.Equals(unit.Position)) {
+					initCost = CurrentMoveOptions[i].Value;
+					break;
+				}
+			}
+			Position newPos = BoardManager.Jump(unit, position, initCost);
+			if (roll < 6) {
 				unit.MovementLeft = 0;
 			}//if roll==6 then leave their movement amount alone
-			return BoardManager.Jump(unit, position);						
+			return newPos;
 		}
 		private bool WereAttackersVictorious(KeyValuePair<Unit, List<Unit>> Conflict) {
 			int DefenderRolls = Conflict.Key.Attacks;
@@ -219,7 +232,7 @@ namespace WarChess.Objects {
 			}			
 		}
 
-		public Phases NextPhase() {
+		private Phases NextPhase() {
 			Phases[] vals = (Phases[]) Enum.GetValues(typeof(Phases));
 
 			if (vals[vals.Length-1] == Phase) {

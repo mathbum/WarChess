@@ -7,7 +7,9 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="621" Width="775.131">
     <Grid x:Name="MainGrid">
-        <Grid x:Name="grid" HorizontalAlignment="Left" Height="258" Margin="167,100,0,0" VerticalAlignment="Top" Width="500" PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown"/>
+        <ScrollViewer Margin="167,100,10,10" HorizontalScrollBarVisibility="Auto">
+            <!--Height="258" Width="500"--><Grid x:Name="grid" HorizontalAlignment="Left" VerticalAlignment="Top" PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown"/>
+        </ScrollViewer>
         <ScrollViewer x:Name="UnitGridScroller" Margin="12,197,605,294" Width="130" Height="100">
             <Grid x:Name ="UnitGrid" Background="Blue"/>
         </ScrollViewer>

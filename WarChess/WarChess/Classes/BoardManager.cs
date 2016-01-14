@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WarChess.Objects.TerrainObjs;
 
 namespace WarChess.Objects {
 	public class BoardManager {//TODO have flyweight pattern for terrain objs and maybe squares if i can think of how
@@ -31,8 +30,8 @@ namespace WarChess.Objects {
 		public Square GetSquareAtPos(Position position) {
 			return Board.GetSquareAtPos(position);
 		}
-		public bool MoveUnit(Position originalPos, Position newPos,int cost) {
-			bool isValidMove = Board.MoveUnit(originalPos, newPos);
+		public bool MoveUnit(Position originalPos, Position newPos, int cost) {
+			bool isValidMove = Board.MoveUnit(originalPos, newPos, cost);
 			if (isValidMove) {
 				
 				if (Moves.ContainsKey(originalPos)) {
@@ -48,7 +47,7 @@ namespace WarChess.Objects {
 			Board.KillUnit(unit);
 		}
 		public void SolidifyMoves() {
-			foreach (KeyValuePair<Position, KeyValuePair<Position, int>> move in Moves) {//isn't tested
+			foreach (KeyValuePair<Position, KeyValuePair<Position, int>> move in Moves) {
 				Unit unit = Board.GetUnitAtPos(move.Key);
 				unit.MovementLeft = unit.MovementLeft - move.Value.Value;
 			}
@@ -57,9 +56,9 @@ namespace WarChess.Objects {
 		public void ResetAllMoveability() {
 			Board.ResetAllMoveability();
 		}
-		public Position Jump(Unit unit,Position position) {
+		public Position Jump(Unit unit,Position position,int initCost) {
 			Moves.Remove(unit.Position);
-			return Board.Jump(unit,position);
+			return Board.Jump(unit,position,initCost);
 		}
 		public List<Position> GetJumpablePos(Position position) {
 			int initCost = 0;
@@ -85,7 +84,8 @@ namespace WarChess.Objects {
 				for (int j = 0; j < Distances[i].Count; j++) {
 					int Distance = Distances[i][j];
 					Position position = new Position(i, j);
-					if (Distance!=-1 && Board.GetUnitAtPos(position)==Config.NullUnit) {
+					Unit unitAtPos = Board.GetUnitAtPos(position);
+					if (Distance!=-1 && (unitAtPos==Config.NullUnit||unitAtPos==unit)) {
 						PossibleMoves.Add(new KeyValuePair<Position,int>(position,Distance));
 					}
 				}

@@ -72,6 +72,9 @@
     <Compile Include="Objects\Terrain.cs" />
     <Compile Include="Objects\Unit.cs" />
     <Compile Include="Classes\Utils.cs" />
+    <Compile Include="BoardMaker.xaml.cs">
+      <DependentUpon>BoardMaker.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SetUp.xaml.cs">
       <DependentUpon>SetUp.xaml</DependentUpon>
     </Compile>
@@ -105,6 +108,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="BoardMaker.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="SetUp.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -116,6 +123,11 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Ideas.txt" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Terrain Pics\grasss.png" />
+    <Resource Include="Terrain Pics\ShortWalls.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
