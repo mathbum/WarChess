@@ -80,6 +80,8 @@ namespace Project1 {
 			}
 		}
 		private void button_Click(object sender, RoutedEventArgs e) {
+			
+
 			BoardManager BM;
 			if ((bool) BoardLoaderRad.IsChecked) {
 				string loadertext = BoardLoader.Text;
@@ -91,8 +93,28 @@ namespace Project1 {
 			} else {
 				int rows = int.Parse(trows.Text);
 				int cols = int.Parse(tcols.Text);
-				BM = new BoardManager(rows, cols);
+				BM = new BoardManager(rows, cols);			
 			}
+			//Position g = new Position(0, 0);
+			//Position w = new Position(3, 3);
+			//BM.GetSquareAtPos(g).Unit = Config.Units["Goblin"];
+			//BM.GetSquareAtPos(w).Unit = Config.Units["Warrior"];
+			//var val = BM.GetShotPath(g, w);
+
+			//g = new Position(1, 1);
+			//w = new Position(3, 2);
+			//BM.GetSquareAtPos(g).Unit = Config.Units["Goblin"];
+			//BM.GetSquareAtPos(w).Unit = Config.Units["Warrior"];
+			//val = BM.GetShotPath(g, w);
+
+			//g = new Position(0, 0);
+			//w = new Position(3, 1);
+			//BM.GetSquareAtPos(g).Unit = Config.Units["Goblin"];
+			//BM.GetSquareAtPos(w).Unit = Config.Units["Warrior"];
+			//val = BM.GetShotPath(g, w);
+			
+			//val = BM.GetShotPath(w, g);
+
 
 			Dictionary<string, int> UnitCount1 = new Dictionary<string, int>();
 			Dictionary<string, int> UnitCount2 = new Dictionary<string, int>();

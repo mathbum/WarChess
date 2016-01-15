@@ -19,6 +19,7 @@ namespace WarChess.Objects {
 		public bool IsNull() {
 			return Row < 0 || Column < 0;
 		}
+		//add dist func to position
 		public override bool Equals(Object p) {
 			if ((object)p == null) {
 				return false;

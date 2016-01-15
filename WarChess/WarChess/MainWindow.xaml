@@ -7,10 +7,11 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="621" Width="775.131">
     <Grid x:Name="MainGrid">
-        <ScrollViewer Margin="167,100,10,10" HorizontalScrollBarVisibility="Auto">
-            <!--Height="258" Width="500"--><Grid x:Name="grid" HorizontalAlignment="Left" VerticalAlignment="Top" PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown"/>
+        <ScrollViewer Margin="167,100,10,10" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <!--Height="258" Width="500"-->
+            <Grid x:Name="grid" HorizontalAlignment="Left" VerticalAlignment="Top" PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown" MouseMove="grid_MouseMove"/>
         </ScrollViewer>
-        <ScrollViewer x:Name="UnitGridScroller" Margin="12,197,605,294" Width="130" Height="100">
+        <ScrollViewer x:Name="UnitGridScroller" Margin="12,197,0,0" Height="100" Width="130" VerticalScrollBarVisibility="Auto" VerticalAlignment="Top" HorizontalAlignment="Left">
             <Grid x:Name ="UnitGrid" Background="Blue"/>
         </ScrollViewer>
         <Button x:Name="EndTurnButton" Content="End Turn" HorizontalAlignment="Left" Height="46" Margin="32,407,0,0" VerticalAlignment="Top" Width="114" Click="EndTurn_Click" IsEnabled="False"/>

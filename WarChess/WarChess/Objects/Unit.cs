@@ -21,8 +21,6 @@ namespace WarChess.Objects {
 			this.Will = Will;
 			this.Fate = Fate;
 		}
-		 //TODO add max move dist
-		 //TODO add dist left?
 		 //TODO max move dist while shootable. put this to item
 		public Player Player { get; set; }
 		public string Name { get; protected set; }
@@ -30,7 +28,7 @@ namespace WarChess.Objects {
 		public int Width { get; protected set; }
 		public int Length { get; protected set; }
 		public Config.Allegiance Allegiance { get; protected set; }
-		public int Fighting {get;protected set;} //TODO fighting? first is handtohand fighting second is minimum roll to land a hit with range. put second number to item?
+		public int Fighting {get;protected set;} //TODO fighting? first is handtohand fighting second is minimum roll to land a hit with range
 		public int Strength { get; protected set; }
 		public int Defense { get; protected set; }
 		public int Attacks { get; protected set; }

@@ -18,11 +18,14 @@ namespace WarChess.Objects {
 		private BoardManager BoardManager { get; set; }
 		public bool IsInSetup { get; private set; } = true;
 		//public enum Phases { Priority, Move, Shoot, Fight };//TODO need end phase? 	do i need priotiry phase?
-		public enum Phases { Move};//TODO need end phase? 	do i need priotiry phase?
+		public enum Phases { Move, Shoot };//TODO need end phase? 	do i need priotiry phase?
 		private List<Player> Players;
 		private int PlayerTurnIndex = 0;
 		private ConflictManager conflictManager = new ConflictManager();
 		private List<KeyValuePair<Position, int>> CurrentMoveOptions;
+		//private List<List<Position>> CurrentShotPathDetails;
+		private Dictionary<Position, List<List<Position>>> ShotOptions;
+
 
 		public bool PlaceUnit(Position position,Unit unit) {
 			bool succ = BoardManager.PlaceUnit(position, unit);
@@ -91,8 +94,6 @@ namespace WarChess.Objects {
 		//TODO avoid setup scrollview from going all over the place. 
 		//TODO memory useage?
 		//TODO scroll bars on grid? maybe zoom level? maybe map like AOE?
-
-		//TODO allow users to cancel a movement 
 
 		public List<List<Position>> GetPossibleAttackPos(Position position) {
 			Unit playersUnit = BoardManager.GetUnitAtPos(position);
@@ -166,7 +167,7 @@ namespace WarChess.Objects {
 			int roll = Utils.RollD6(1)[0];
 			
 			if (roll == 1) {
-				BoardManager.KillUnit(unit);
+				BoardManager.KillUnit(unit);//...does jump kill?
 				return null;
 			}
 			int initCost = 0;
@@ -182,6 +183,18 @@ namespace WarChess.Objects {
 			}//if roll==6 then leave their movement amount alone
 			return newPos;
 		}
+		public List<List<Position>> GetShotPathDetails(Position Target) {
+			return ShotOptions[Target];
+		}//whenever gui wants to update shot details just send them the dict values
+		public List<Position> GetShotOptions(Position Shooter) {
+			Unit unit = BoardManager.GetUnitAtPos(Shooter);			
+			if (!unit.InConflict) {
+				//TODO check to make sure unit has an item to shoot with. check to make sure unit has enough movement left and hasn't already shot.
+				ShotOptions = BoardManager.GetShotOptions(Shooter);
+				return ShotOptions.Keys.ToList();//to display shoot buttons
+			}
+			return null;
+		}//when you select a unit in the shoot phase. get all shoot options. then store them in a dict. 
 		private bool WereAttackersVictorious(KeyValuePair<Unit, List<Unit>> Conflict) {
 			int DefenderRolls = Conflict.Key.Attacks;
 			int AttackerRolls = 0;
