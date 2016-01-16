@@ -34,7 +34,10 @@ namespace Project1 {
 			int cols;
 			board.Clear();
 			if ((bool)BoardLoaderRad.IsChecked) {
-				board = Config.Boards[BoardLoader.Text];
+				List<string> tempboard = Config.Boards[BoardLoader.Text];
+				for(int i = 0; i < tempboard.Count; i++) {
+					board.Add(tempboard[i]);
+				}
 				rows = board.Count;
 				cols = board[0].Length;
 			} else {

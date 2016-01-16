@@ -24,13 +24,13 @@ namespace WarChess.Objects {
 			return TerrainKeys;
 		}
 
-		//name,points,width,length,allegiance,fighting,strength,defense,attacks,wounds,mights,wills,fates
+		//name,points,width,length,allegiance,fighting,shootingprofeciency,strength,defense,attacks,wounds,mights,wills,fates
 		public static Dictionary<string, Unit> Units = new Dictionary<string, Unit> {
-			{ "Goblin", new Unit("Goblin",4,1,1,Allegiance.Evil,2,3,5,1,1,0,0,0)},
+			{ "Goblin", new Unit("Goblin",4,1,1,Allegiance.Evil,2,5,3,5,1,1,0,0,0)},
 			//{ "Orc", new Unit("Orc",7,1,1,Allegiance.Evil,3,3,5,1,1,0,0,0)},
-			{ "Warrior",new Unit("Warrior",9,1,1,Allegiance.Good,3,3,5,1,1,0,0,0)}
-		};//DO I HAVE AN EXTRA INSTANCE OF EVERY UNIT?
-		public static Unit NullUnit = new Unit("", 0, 0, 0, Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0, 0);
+			{ "Warrior",new Unit("Warrior",9,1,1,Allegiance.Good,3,5,3,5,1,1,0,0,0)}
+		};//TODO DO I HAVE AN EXTRA INSTANCE OF EVERY UNIT?
+		public static Unit NullUnit = new Unit("", 0, 0, 0, Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 		public static Dictionary<char, Terrain> TerrainObjs = new Dictionary<char, Terrain> {
 			{' ',new Terrain("Grass","grasss.png",true,true,false,1) },
 			{'u',new Terrain("Short Wall","ShortWalls.png",false,true,true,1) }

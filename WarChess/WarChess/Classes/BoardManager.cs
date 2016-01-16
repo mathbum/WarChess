@@ -54,7 +54,7 @@ namespace WarChess.Objects {
 			Moves.Clear();
 		}
 		public void ResetAllMoveability() {
-			Board.ResetAllMoveability();
+			Board.ResetUnitTempStats();
 		}
 		public Position Jump(Unit unit, Position position, int initCost) {
 			Moves.Remove(unit.Position);
@@ -138,6 +138,9 @@ namespace WarChess.Objects {
 		}
 		public Dictionary<Position, List<List<Position>>> GetShotOptions(Position Shooter) {
 			return Board.GetShotOptions(Shooter);
+		}
+		public List<List<Position>> GetShotDetails(Position Shooter,Position Target) {
+			return Board.GetShotPathDetails(Shooter, Target);
 		}
 	}
 }

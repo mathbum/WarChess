@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 
 namespace WarChess.Objects {
 	public class Unit {
-		public Unit(string Name, int Points, int Width, int Length, Config.Allegiance Allegiance, int Fighting, int Strength, int Defense, int Attacks, int Wounds, int Might, int Will, int Fate) {
+		public Unit(string Name, int Points, int Width, int Length, Config.Allegiance Allegiance, int Fighting, int ShootingSkill, int Strength, int Defense, int Attacks, int Wounds, int Might, int Will, int Fate) {
 			this.Name = Name;
 			this.Points = Points;
 			this.Width = Width;
 			this.Length = Length;
 			this.Allegiance = Allegiance;
 			this.Fighting = Fighting;
+			this.ShootingSkill = this.ShootingSkill;
 			this.Strength = Strength;
 			this.Defense = Defense;
 			this.Attacks = Attacks;
@@ -28,7 +29,8 @@ namespace WarChess.Objects {
 		public int Width { get; protected set; }
 		public int Length { get; protected set; }
 		public Config.Allegiance Allegiance { get; protected set; }
-		public int Fighting {get;protected set;} //TODO fighting? first is handtohand fighting second is minimum roll to land a hit with range
+		public int Fighting {get;protected set;} 
+		public int ShootingSkill { get; protected set; }
 		public int Strength { get; protected set; }
 		public int Defense { get; protected set; }
 		public int Attacks { get; protected set; }
@@ -42,5 +44,6 @@ namespace WarChess.Objects {
 		public bool InConflict { get; set; } = false;
 		public Position Position { get; set; }
 		public int MovementLeft { get; set; } = 3;
+		public bool HasShot { get; set; } = false;
 	}
 }

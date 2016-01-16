@@ -10,7 +10,7 @@
         <Button x:Name="button" Content="Create" HorizontalAlignment="Left" Margin="242,348,0,0" VerticalAlignment="Top" Width="75"/>
         <!--<TextBox x:Name="PointLimit" HorizontalAlignment="Left" Height="27" Margin="85,94,0,0" TextWrapping="Wrap" Text="25" VerticalAlignment="Top" Width="51"/>
         <Label Content="Point Limit" HorizontalAlignment="Left" Height="27" Margin="18,94,0,0" VerticalAlignment="Top" Width="51"/>-->
-        <ScrollViewer Margin="15,127,433,150" Width="150" Height="100">
+        <ScrollViewer Margin="15,127,433,150" Width="150" Height="100" HorizontalAlignment="Left" VerticalAlignment="Top">
             <Grid x:Name ="TerrainGrid" Background="Blue" PreviewMouseDown="SelectTerrain"/>
         </ScrollViewer>
         <ScrollViewer Margin="179,10,19,48" HorizontalScrollBarVisibility="Auto">

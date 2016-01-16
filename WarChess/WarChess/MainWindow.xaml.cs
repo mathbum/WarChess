@@ -179,7 +179,7 @@ namespace Project1 {
 			}
 			return new Position(row, col);
 		}
-		private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+		private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {//TODO fix problem where clicking a button runs this and the button code
 			//if (e.ClickCount == 2) { // for double-click, remove this condition if only want single click
 
 			//MessageBox.Show(string.Format("Grid clicked at row {0}, column {1}", row, col));
@@ -230,20 +230,17 @@ namespace Project1 {
 					}
 				}else if(Game.Phase == Game.Phases.Shoot) {
 					if (SelectedPos != null && SelectedPos.Equals(position)) { //descecting your unit
-
+						SelectedPos = null;
+						RemoveGuiOptions();//shouldn't go through code to removemoveoptions
 					} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
+						if (SelectedPos != null) {//previously had a different unit selected
+							labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
+							RemoveGuiOptions();
+						}
 						SelectedPos = position;
 						labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
 
-
-						//make this like displayattack options
-						List<Position> ShotOptions = Game.GetShotOptions(SelectedPos);
-						for (int i = 0; i < ShotOptions.Count; i++) {
-							Position pos = ShotOptions[i];
-							labels[pos.Row][pos.Column].Background = new SolidColorBrush(Colors.Orange);//put a shoot button instead
-						}
-
-
+						ShowShotOptions();
 					} else if (SelectedPos != null) {
 						//UpdateAllSquares();//no
 						//ShowShot(position);
@@ -263,8 +260,24 @@ namespace Project1 {
 				//}
 			}
         }
+		private void ShowShotOptions() {
+			//make this like displayattack options
+			List<Position> ShotOptions = Game.GetShotOptions(SelectedPos);
+			for (int i = 0; i < ShotOptions.Count; i++) {
+				Position pos = ShotOptions[i];
+				Button b = CreateButton(45, 40, "Shoot", ShootTarget, grid, pos.Row, pos.Column);
+				actionButtons.Add(b);
+			}
+		}
+		private void ShootTarget(object sender, RoutedEventArgs e) {
+			Button b = (Button)sender;
+			Position position = new Position(Grid.GetRow(b), Grid.GetColumn(b));
+			Game.Shoot(SelectedPos, position);
+			RemoveGuiOptions();//shouldn't go through code to removemoveoptions
+			labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
+		}
 		private void ShowShot(Position Target) {
-			List<List<Position>> ShotPathDetails = Game.GetShotPathDetails(Target);//should always be len 3, good shot pos, iffy shot pos, bad shot pos
+			List<List<Position>> ShotPathDetails = Game.GetShotPathDetails(SelectedPos,Target);//should always be len 3, good shot pos, iffy shot pos, bad shot pos
 			Position pos;
 			Color color;
 			for(int i = 0; i < ShotPathDetails.Count; i++) {
@@ -436,7 +449,11 @@ namespace Project1 {
 
 			if(!(unitatpos == Config.NullUnit)) {
 				if (unitatpos.Player == Game.GetCurrentPlayer()) {
-					labelatpos.Background = new SolidColorBrush(Colors.Green);
+					if (SelectedPos!=null && SelectedPos == position) {
+						labelatpos.Background = new SolidColorBrush(Colors.Black);
+					} else {
+						labelatpos.Background = new SolidColorBrush(Colors.Green);
+					}
 				} else {
 					labelatpos.Background = new SolidColorBrush(Colors.Red);
 				}
@@ -510,17 +527,19 @@ namespace Project1 {
 				}
 			}							
 		}
-		//private Position lastHover = null;
-		//private void grid_MouseMove(object sender, MouseEventArgs e) {
-		//	if(Game.Phase == Game.Phases.Shoot) {
-		//		if (SelectedPos != null) {
-		//			Position pos = GetPosOfClickedCell();
-		//			if (lastHover == null || !lastHover.Equals(pos)) {
-		//				ShowShot(pos);
-		//			}
-		//		}
-		//	}
-		//}
+		private Position lastHover = null;
+		private void grid_MouseMove(object sender, MouseEventArgs e) {//want to also be able to check shots in the movement phase. 
+			if (Game.Phase == Game.Phases.Shoot) {
+				if (SelectedPos != null) {
+					Position pos = GetPosOfClickedCell();
+					if ((lastHover == null || !lastHover.Equals(pos)) && !SelectedPos.Equals(pos)) {//also want to see if i have a good shot on my target buy its covered by button
+						lastHover = pos;
+						UpdateAllSquares();
+						ShowShot(pos);
+					}
+				}
+			}
+		}
 		/////////////////////////////////////////////////////////////////
 	}
 }

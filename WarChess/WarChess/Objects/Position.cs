@@ -19,7 +19,11 @@ namespace WarChess.Objects {
 		public bool IsNull() {
 			return Row < 0 || Column < 0;
 		}
-		//add dist func to position
+		public double Distance(Position pos) {
+			int rowDiff = Math.Abs(Row - pos.Row);
+			int colDiff = Math.Abs(Column - pos.Column);
+			return Math.Sqrt(rowDiff ^ 2 + colDiff ^ 2);
+		}
 		public override bool Equals(Object p) {
 			if ((object)p == null) {
 				return false;

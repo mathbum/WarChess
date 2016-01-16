@@ -25,6 +25,7 @@ namespace Project1 {
         }
 		private List<KeyValuePair<TextBox, string>> AllUnitCountList;
 		private BoardMaker BoardMaker = new BoardMaker();
+
 		private void init() {
 			//UnitGrid.Width = cols * 75;
 			//grid.HorizontalAlignment = HorizontalAlignment.Left;

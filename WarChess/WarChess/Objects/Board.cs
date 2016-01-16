@@ -66,11 +66,12 @@ namespace WarChess.Objects {
 			}
 			return null;
 		}
-		public void ResetAllMoveability() {
+		public void ResetUnitTempStats() {
 			for(int i = 0; i < Rows; i++) {
 				for(int j=0;j< Columns; j++) {
 					Unit unit = GetUnitAtPos(new Position(i, j));
 					unit.MovementLeft = unit.MaxMoveDist;
+					unit.HasShot = false;
 				}
 			}
 		}
@@ -180,7 +181,7 @@ namespace WarChess.Objects {
 			return ShotOptions;
 		}
 		//TODO can't shoot if path is obstrubted by obsticule (or unit) or conflict (if good), out of range. Also can shoot if friendly is directly next to you (just like terrain) (rest is taken care of by game)
-		private List<List<Position>> GetShotPathDetails(Position Shooter, Position Target) {//three lists, first is good positions you can shoot over, second is obj in way pos, third is restrictions pos
+		public List<List<Position>> GetShotPathDetails(Position Shooter, Position Target) {//three lists, first is good positions you can shoot over, second is obj in way pos, third is restrictions pos
 			List<Position> goodPos = new List<Position>();
 			List<Position> objInWayPos = new List<Position>();
 			List<Position> badPos = new List<Position>();
@@ -192,7 +193,7 @@ namespace WarChess.Objects {
 				Square square = GetSquareAtPos(path[i]);
 				if (!square.Terrain.SeeThrough || (ShootingUnit.Allegiance == Config.Allegiance.Good && (square.Unit.Player == ShootingUnit.Player || square.Unit.InConflict))) {//TODO or you are a good unit shooing into a conflict an ally is in
 					badPos.Add(path[i]);//if the terrain isn't see through, or if you are good and an ally unit is in way or someone in conflict
-				} else if ((!square.Terrain.IsStandable || square.Unit != Config.NullUnit) && i + 1 != path.Count) {
+				} else if ((!square.Terrain.IsStandable || (square.Unit != Config.NullUnit && !path[i].Equals(Target)) || (ShootingUnit.Allegiance==Config.Allegiance.Evil && square.Unit.InConflict)) && i + 1 != path.Count) {
 					objInWayPos.Add(path[i]);//if terrain is in way, or a unit is in way. (either enemy unit or you are evil [we know this bc of previous statement]) and it isn't the square in front of you
 				} else {
 					goodPos.Add(path[i]);
@@ -205,8 +206,8 @@ namespace WarChess.Objects {
 			int colDiff = Shooter.Column - Target.Column;
 			int rowSign = Math.Sign(rowDiff);//if positive then shooting up, if negative then shooing down
 			int colSign = Math.Sign(colDiff);//if positive then shooting left, if negative then shooting right
-			List<Position> path = new List<Position>();
-			if (rowDiff ==0 || colDiff == 0 || rowDiff == colDiff) {//shooting straight up/down or left/right or diag				
+			List<Position> path = new List<Position>() { Target };
+			if (rowDiff ==0 || colDiff == 0 || Math.Abs(rowDiff) == Math.Abs(colDiff)) {//shooting straight up/down or left/right or diag				
 				Position currentPos = Target;
 				for (;;) {
 					currentPos = new Position(currentPos.Row+rowSign, currentPos.Column+colSign);
@@ -233,21 +234,77 @@ namespace WarChess.Objects {
 					minorCol = colSign;
 				}
 				Position currentPos = Target;
+
+				//Position currentPos = new Position(Target.Row - majorRow, Target.Column - majorCol);
 				for (int i = 0; i < numOfMinorMoves; i++) {
 					int currentSlope = slope;
 					if ((numOfMinorMoves - remainder) <= i) {
-						currentSlope++;
+						currentSlope = slope + 1;
+
+					} else if (i == 0) {
+						currentSlope--;
+						//	if (numOfMinorMoves == 1 && slope > 2) {
+						//		remainder++;
+						//		currentSlope--;
+						//	}
+						//	//if (remainder == 0) {
+						//	//	currentSlope--;
+						//	//	//	if (slope > 2) {
+						//	//	//		currentSlope--;
+						//	//	//		remainder++;
+						//	//	//	}
+						//	//}
 					}
-					for (int j = 0; j < currentSlope; j++) {
+					for (int j = 0; j < currentSlope; j++) {						
 						currentPos = new Position(currentPos.Row + majorRow, currentPos.Column + majorCol);
 						path.Add(currentPos);
+						if (j == currentSlope/2) {
+							currentPos = new Position(currentPos.Row + minorRow, currentPos.Column + minorCol);
+							path.Add(currentPos);
+						}
 					}
-					currentPos = new Position(currentPos.Row + minorRow, currentPos.Column + minorCol);
-					path.Add(currentPos);
+						//currentPos = new Position(currentPos.Row + minorRow, currentPos.Column + minorCol);
+						//path.Add(currentPos);
 				}
-				path.RemoveAt(path.Count - 1);//remove yourself
-				path.RemoveAt(path.Count - 1);//remove the always mistake				
-				path.Add(new Position(Shooter.Row - majorRow, Shooter.Column - majorCol));//add move in major direction
+
+				//path.RemoveAt(path.Count - 1);//remove yourself
+				//path.Add(currentPos);
+				//path.RemoveAt(path.Count - 1);//remove the always mistake				
+				//path.Add(new Position(Shooter.Row - majorRow, Shooter.Column - majorCol));//add move in major direction
+
+				//int numOfMinorMoves = Math.Abs(rowDiff);//default values to of left/right is the major movement (target is further left/right than up/down)				
+				//int slope = Math.Abs(colDiff / rowDiff);
+				//int remainder = Math.Abs(colDiff % rowDiff);
+				//int majorRow = 0;
+				//int majorCol = colSign;
+				//int minorRow = rowSign;
+				//int minorCol = 0;
+				//if (Math.Abs(rowDiff) > Math.Abs(colDiff)) {
+				//	numOfMinorMoves = Math.Abs(colDiff);
+				//	slope = Math.Abs(rowDiff / colDiff);
+				//	remainder = Math.Abs(rowDiff % colDiff);
+				//	majorRow = rowSign;
+				//	majorCol = 0;
+				//	minorRow = 0;
+				//	minorCol = colSign;
+				//}
+				//Position currentPos = Target;
+				////Position currentPos = new Position(Target.Row - majorRow, Target.Column - majorCol);
+				//for (int i = 0; i < numOfMinorMoves; i++) {
+				//	int currentSlope = slope;
+				//	if ((numOfMinorMoves - remainder) <= i) {
+				//		currentSlope++;
+				//	}
+				//	for (int j = 0; j < currentSlope; j++) {
+				//		currentPos = new Position(currentPos.Row + majorRow, currentPos.Column + majorCol);
+				//		path.Add(currentPos);
+				//	}
+				//	currentPos = new Position(currentPos.Row + minorRow, currentPos.Column + minorCol);
+				//	path.Add(currentPos);
+				//}
+				//path.RemoveAt(path.Count - 1);//remove yourself
+				//path.RemoveAt(path.Count - 1);//remove the always mistake				
+				//path.Add(new Position(Shooter.Row - majorRow, Shooter.Column - majorCol));//add move in major direction
 			}
 			return path;
 		}

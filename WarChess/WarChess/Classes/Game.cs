@@ -66,6 +66,7 @@ namespace WarChess.Objects {
 			int Length = tempUnit.Length;
 			Config.Allegiance Allegiance = tempUnit.Allegiance;
 			int Fighting = tempUnit.Fighting;
+			int ShootingProficiency = tempUnit.ShootingSkill;
 			int Strength = tempUnit.Strength;
 			int Defense = tempUnit.Defense;
 			int Attack = tempUnit.Attacks;
@@ -73,7 +74,7 @@ namespace WarChess.Objects {
 			int Might = tempUnit.Might;
 			int Will = tempUnit.Will;
 			int Fate = tempUnit.Fate;
-			return new Unit(Name, Points, Width, Length, Allegiance, Fighting, Strength, Defense, Attack, Wounds, Might, Will, Fate);
+			return new Unit(Name, Points, Width, Length, Allegiance, Fighting, ShootingProficiency, Strength, Defense, Attack, Wounds, Might, Will, Fate);
 		}
 
 		public bool Move(Position originalPos, Position newPos) {
@@ -183,8 +184,15 @@ namespace WarChess.Objects {
 			}//if roll==6 then leave their movement amount alone
 			return newPos;
 		}
-		public List<List<Position>> GetShotPathDetails(Position Target) {
-			return ShotOptions[Target];
+		public List<List<Position>> GetShotPathDetails(Position Shooter, Position Target) {
+			Unit ShootingUnit = BoardManager.GetUnitAtPos(Shooter);
+			if (!ShootingUnit.HasShot) {
+				if (ShotOptions.ContainsKey(Target)) {
+					return ShotOptions[Target];
+				}
+				return BoardManager.GetShotDetails(Shooter, Target);
+			}
+			return new List<List<Position>>();
 		}//whenever gui wants to update shot details just send them the dict values
 		public List<Position> GetShotOptions(Position Shooter) {
 			Unit unit = BoardManager.GetUnitAtPos(Shooter);			
@@ -193,8 +201,43 @@ namespace WarChess.Objects {
 				ShotOptions = BoardManager.GetShotOptions(Shooter);
 				return ShotOptions.Keys.ToList();//to display shoot buttons
 			}
-			return null;
+			return new List<Position>();
 		}//when you select a unit in the shoot phase. get all shoot options. then store them in a dict. 
+		public void Shoot(Position Shooter,Position Target) {
+			List<List<Position>> ShotDetails = ShotOptions[Target];
+			List<Position> PosPreventingShot = ShotDetails[2];
+			Unit ShootingUnit = BoardManager.GetUnitAtPos(Shooter);
+			if (PosPreventingShot.Count == 0 && !ShootingUnit.HasShot) {
+				int roll = Utils.RollD6(1)[0];				
+				ShootingUnit.HasShot = true;
+				if (roll >= ShootingUnit.ShootingSkill) {//shooter hit target
+					List<Position> ObstructionPos = ShotDetails[1];
+					for (int i = 0; i < ObstructionPos.Count; i++) {//TODO determine if you pass obsticule based upon shootingskill?
+						//roll to see if you pass each object
+						roll = Utils.RollD6(1)[0];
+						if (roll <= 3) {//didn't pass obj
+							Square square = BoardManager.GetSquareAtPos(ObstructionPos[i]);
+							if (!square.Terrain.IsStandable) {
+								return;								
+							}else if (square.Unit != Config.NullUnit && !square.Unit.InConflict) {
+								Target = ObstructionPos[i];
+								break;
+							}else if (square.Unit.InConflict) {
+								//TODO deal with conflict
+								//set target based upon conflict.... this might be annoying
+							}
+						}						
+					}				
+					Unit struckUnit = BoardManager.GetUnitAtPos(Target);
+					if (Utils.ResolveStrike(3, struckUnit.Defense)) {
+						struckUnit.Wounds -= 1;
+						if (struckUnit.Wounds < 1) {
+							BoardManager.KillUnit(struckUnit);
+						}						
+					}
+				}
+			}
+		}
 		private bool WereAttackersVictorious(KeyValuePair<Unit, List<Unit>> Conflict) {
 			int DefenderRolls = Conflict.Key.Attacks;
 			int AttackerRolls = 0;
