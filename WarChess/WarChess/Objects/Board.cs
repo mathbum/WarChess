@@ -193,7 +193,7 @@ namespace WarChess.Objects {
 				Square square = GetSquareAtPos(path[i]);
 				if (!square.Terrain.SeeThrough || (ShootingUnit.Allegiance == Config.Allegiance.Good && (square.Unit.Player == ShootingUnit.Player || square.Unit.InConflict))) {//TODO or you are a good unit shooing into a conflict an ally is in
 					badPos.Add(path[i]);//if the terrain isn't see through, or if you are good and an ally unit is in way or someone in conflict
-				} else if ((!square.Terrain.IsStandable || (square.Unit != Config.NullUnit && !path[i].Equals(Target)) || (ShootingUnit.Allegiance==Config.Allegiance.Evil && square.Unit.InConflict)) && i + 1 != path.Count) {
+				} else if ((!square.Terrain.IsStandable || (square.Unit != Config.NullUnit && !path[i].Equals(Target)) || (ShootingUnit.Allegiance==Config.Allegiance.Evil && square.Unit.InConflict)) && i != 0) {
 					objInWayPos.Add(path[i]);//if terrain is in way, or a unit is in way. (either enemy unit or you are evil [we know this bc of previous statement]) and it isn't the square in front of you
 				} else {
 					goodPos.Add(path[i]);
@@ -201,110 +201,239 @@ namespace WarChess.Objects {
 			}
 			return PathDetails;
 		}
+		//RayCasting
+		//http://www.saltgames.com/article/lineOfSight/		http://www.saltgames.com/articles/lineOfSight/lineOfSightDemo.js this is what i did
+		//http://www.roguebasin.com/index.php?title=Raycasting_in_python
+		//FOV
+		//http://www.roguebasin.com/index.php?title=Eligloscode
+
+		//http://www.cs.yorku.ca/~amana/research/grid.pdf
 		private List<Position> GetShotPath(Position Shooter, Position Target) {
-			int rowDiff = Shooter.Row - Target.Row;
-			int colDiff = Shooter.Column - Target.Column;
+			int rowDiff = Target.Row - Shooter.Row;
+			int colDiff = Target.Column - Shooter.Column;
 			int rowSign = Math.Sign(rowDiff);//if positive then shooting up, if negative then shooing down
 			int colSign = Math.Sign(colDiff);//if positive then shooting left, if negative then shooting right
-			List<Position> path = new List<Position>() { Target };
-			if (rowDiff ==0 || colDiff == 0 || Math.Abs(rowDiff) == Math.Abs(colDiff)) {//shooting straight up/down or left/right or diag				
-				Position currentPos = Target;
+			List<Position> path = new List<Position>();
+			if (rowDiff == 0 || colDiff == 0 || Math.Abs(rowDiff) == Math.Abs(colDiff)) {//shooting straight up/down or left/right or diag						
+				Position currentPos = Shooter;
 				for (;;) {
-					currentPos = new Position(currentPos.Row+rowSign, currentPos.Column+colSign);
-					if (currentPos.Equals(Shooter)) {
+					currentPos = new Position(currentPos.Row + rowSign, currentPos.Column + colSign);
+					path.Add(currentPos);
+					if (currentPos.Equals(Target)) {
 						break;
 					}
-					path.Add(currentPos);					
+					
 				}
 			} else {
-				int numOfMinorMoves = Math.Abs(rowDiff);//default values to of left/right is the major movement (target is further left/right than up/down)				
-				int slope = Math.Abs(colDiff / rowDiff);
-				int remainder = Math.Abs(colDiff % rowDiff);
-				int majorRow = 0;
-				int majorCol = colSign;
-				int minorRow = rowSign;
-				int minorCol = 0;
-				if (Math.Abs(rowDiff) > Math.Abs(colDiff)) {
-					numOfMinorMoves = Math.Abs(colDiff);
-					slope = Math.Abs(rowDiff / colDiff);
-					remainder = Math.Abs(rowDiff % colDiff);
-					majorRow = rowSign;
-					majorCol = 0;
-					minorRow = 0;
-					minorCol = colSign;
-				}
-				Position currentPos = Target;
+				// change from step to step
+				double tValue, xGrid, yGrid, tForNextBorderX, tForNextBorderY;
 
-				//Position currentPos = new Position(Target.Row - majorRow, Target.Column - majorCol);
-				for (int i = 0; i < numOfMinorMoves; i++) {
-					int currentSlope = slope;
-					if ((numOfMinorMoves - remainder) <= i) {
-						currentSlope = slope + 1;
+				// constant throughout raycast
+				double xDirection, yDirection, tForOneX, tForOneY, xStep, yStep;
 
-					} else if (i == 0) {
-						currentSlope--;
-						//	if (numOfMinorMoves == 1 && slope > 2) {
-						//		remainder++;
-						//		currentSlope--;
-						//	}
-						//	//if (remainder == 0) {
-						//	//	currentSlope--;
-						//	//	//	if (slope > 2) {
-						//	//	//		currentSlope--;
-						//	//	//		remainder++;
-						//	//	//	}
-						//	//}
-					}
-					for (int j = 0; j < currentSlope; j++) {						
-						currentPos = new Position(currentPos.Row + majorRow, currentPos.Column + majorCol);
-						path.Add(currentPos);
-						if (j == currentSlope/2) {
-							currentPos = new Position(currentPos.Row + minorRow, currentPos.Column + minorCol);
-							path.Add(currentPos);
-						}
-					}
-						//currentPos = new Position(currentPos.Row + minorRow, currentPos.Column + minorCol);
-						//path.Add(currentPos);
+				double xEnd = Target.Column + .5;//add .5 so the los is from center of square
+				double xStart = Shooter.Column + .5;
+				double yEnd = Target.Row + .5;
+				double yStart = Shooter.Row + .5;
+
+				xDirection = xEnd - xStart;
+				yDirection = yEnd - yStart;
+				tForOneX = Math.Abs(1.0 / xDirection);
+				tForOneY = Math.Abs(1.0 / yDirection);
+				yStep = (yDirection >= 0) ? 1 : -1;
+				xStep = (xDirection >= 0) ? 1 : -1;
+
+				tValue = 0;
+				xGrid = Math.Floor(xStart);
+				yGrid = Math.Floor(yStart);
+
+				double fracStartPosX = xStart - Math.Floor(xStart);
+				if (xDirection > 0) {
+					tForNextBorderX = (1 - fracStartPosX) * tForOneX;
+				} else {
+					tForNextBorderX = fracStartPosX * tForOneX;
 				}
 
-				//path.RemoveAt(path.Count - 1);//remove yourself
-				//path.Add(currentPos);
-				//path.RemoveAt(path.Count - 1);//remove the always mistake				
-				//path.Add(new Position(Shooter.Row - majorRow, Shooter.Column - majorCol));//add move in major direction
+				double fracStartPosY = yStart - Math.Floor(yStart);
+				if (yDirection > 0) {
+					tForNextBorderY = (1 - fracStartPosY) * tForOneY;
+				} else {
+					tForNextBorderY = fracStartPosY * tForOneY;
+				}
+				while (tValue <= 1.0) {
+					path.Add(new Position((int)yGrid, (int)xGrid));
+					//if (Math.Abs(tForNextBorderX - tForNextBorderY) < 0.000001) {
+					//	// diagonal step (normally not included in a raycast)
+					//	tValue = tForNextBorderX;
+					//	tForNextBorderX += tForOneX;
+					//	tForNextBorderY += tForOneY;
+					//	xGrid += xStep;
+					//	yGrid += yStep;
+					/*} else */
+					if (tForNextBorderX <= tForNextBorderY) {
+						// step in x
+						tValue = tForNextBorderX;
+						tForNextBorderX += tForOneX;
+						xGrid += xStep;
+					} else {
+						// step in y
+						tValue = tForNextBorderY;
+						tForNextBorderY += tForOneY;
+						yGrid += yStep;
+					}
+				}
+				path.Remove(path[0]);//remove shooter from the list
 
-				//int numOfMinorMoves = Math.Abs(rowDiff);//default values to of left/right is the major movement (target is further left/right than up/down)				
-				//int slope = Math.Abs(colDiff / rowDiff);
-				//int remainder = Math.Abs(colDiff % rowDiff);
+				////*********************RayCast 1**********************
+				////int x1 = Target.Column;
+				////int y1 = Target.Row;
+				////int x0 = Shooter.Column;
+				////int y0 = Shooter.Row;
+				////double xDist = Math.Abs(x1 - x0);
+				////double yDist = -Math.Abs(y1 - y0);
+				////int xStep = (x0 < x1 ? +1 : -1);
+				////int yStep = (y0 < y1 ? +1 : -1);
+				////double error = xDist + yDist - .5;
+				//////xDist -= .5;
+				////if (Math.Abs(xDist) < Math.Abs(yDist)) {
+				////	error += 1;
+				////	//xDist += .5;
+				////	//yDist += .5;
+				////}
+
+				////path.Add(new Position(y0, x0));
+
+				////while (x0 != x1 || y0 != y1) {
+				////	if (2 * error - yDist > xDist - 2 * error) {//going to the major for too long... why?
+				////												// horizontal step
+				////		error += yDist;
+				////		x0 += xStep;
+				////	} else {
+				////		// vertical step
+				////		error += xDist;
+				////		y0 += yStep;
+				////	}
+
+				////	path.Add(new Position(y0, x0));
+				////}
+				////************************END RayCast 1*********************
+
+				////**************************Bresenham*******************
+				////int x2 = Target.Column;
+				////int y2 = Target.Row;
+				////int x = Shooter.Column;
+				////int y = Shooter.Row;
+				////int cDiff = x2 - x;
+				////int rDiff = y2 - y;
+				////rowSign = Math.Sign(rDiff);
+				////colSign = Math.Sign(cDiff);
+				////int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+				////dx1 = colSign;
+				////dy1 = rowSign;
+				////dx2 = colSign;
+				////int longest = Math.Abs(cDiff);
+				////int shortest = Math.Abs(rDiff);
+				////int count = 0;
+				////if (longest < shortest) {//can't be equal, otherwise <=
+				////	longest = Math.Abs(rDiff);
+				////	shortest = Math.Abs(cDiff);
+				////	dy2 = rowSign;
+				////	dx2 = 0;
+				////}
+				////List<Position> diags = new List<Position>();
+				////int numerator = longest >> 1;
+				////for (int i = 0; i <= longest; i++) {
+				////	path.Add(new Position(y, x));
+				////	count++;
+				////	numerator += shortest;
+				////	if (numerator >= longest) {
+				////		numerator -= longest;
+				////		x += dx1;
+				////		y += dy1;
+				////	} else {//can't ever make diag move
+				////		x += dx2;
+				////		y += dy2;
+				////	}
+				////}
+				////**************************END Bresenham*******************
+
+				////***********************************My Alg 2**********************
+				//double slope = (double)(colDiff + colSign) / (double)(rowDiff + rowSign);
+				//int count = 1;
 				//int majorRow = 0;
 				//int majorCol = colSign;
 				//int minorRow = rowSign;
 				//int minorCol = 0;
-				//if (Math.Abs(rowDiff) > Math.Abs(colDiff)) {
-				//	numOfMinorMoves = Math.Abs(colDiff);
-				//	slope = Math.Abs(rowDiff / colDiff);
-				//	remainder = Math.Abs(rowDiff % colDiff);
+				//double req = (double)(rowDiff + rowSign) / (double)(colDiff + colSign);
+				//int minorMoves = Math.Abs(rowDiff);
+				//int majorMoves = Math.Abs(colDiff);
+				//int minorMovesMade = 1;
+				//Position currentPos = Shooter;
+				//if (Math.Abs(rowDiff) > Math.Abs(colDiff - colSign)) {
+				//	//slope = (double)(rowDiff + rowSign)/ (double)(colDiff + colSign);
 				//	majorRow = rowSign;
 				//	majorCol = 0;
 				//	minorRow = 0;
 				//	minorCol = colSign;
+				//	minorMoves = Math.Abs(colDiff);
+				//	majorMoves = Math.Abs(rowDiff);
 				//}
-				//Position currentPos = Target;
-				////Position currentPos = new Position(Target.Row - majorRow, Target.Column - majorCol);
-				//for (int i = 0; i < numOfMinorMoves; i++) {
-				//	int currentSlope = slope;
-				//	if ((numOfMinorMoves - remainder) <= i) {
-				//		currentSlope++;
+
+				//for (;;) {
+				//	if (slope * count >= req) {
+				//		minorMovesMade++;
+				//		req = req * minorMovesMade;
+				//		currentPos = new Position(currentPos.Row - minorRow, currentPos.Column - minorCol);
+				//	} else {
+				//		currentPos = new Position(currentPos.Row - majorRow, currentPos.Column - majorCol);
 				//	}
-				//	for (int j = 0; j < currentSlope; j++) {
-				//		currentPos = new Position(currentPos.Row + majorRow, currentPos.Column + majorCol);
-				//		path.Add(currentPos);
-				//	}
-				//	currentPos = new Position(currentPos.Row + minorRow, currentPos.Column + minorCol);
 				//	path.Add(currentPos);
+				//	count++;
+				//	if (req > majorMoves) {
+				//		break;
+				//	}
 				//}
-				//path.RemoveAt(path.Count - 1);//remove yourself
-				//path.RemoveAt(path.Count - 1);//remove the always mistake				
-				//path.Add(new Position(Shooter.Row - majorRow, Shooter.Column - majorCol));//add move in major direction
+				////***********************************END My Alg 2**********************
+
+				//********************My Alg Discrete*******************
+				////	int numOfMinorMoves = Math.Abs(rowDiff);//default values to of left/right is the major movement (target is further left/right than up/down)				
+				////	int slope = Math.Abs(colDiff / rowDiff);
+				////	int remainder = Math.Abs(colDiff % rowDiff);
+				////	int majorRow = 0;
+				////	int majorCol = colSign;
+				////	int minorRow = rowSign;
+				////	int minorCol = 0;
+
+				////	if (Math.Abs(rowDiff) > Math.Abs(colDiff - colSign)) {
+				////		numOfMinorMoves = Math.Abs(colDiff);
+				////		slope = Math.Abs(rowDiff / colDiff);
+				////		remainder = Math.Abs(rowDiff % colDiff);
+				////		majorRow = rowSign;
+				////		majorCol = 0;
+				////		minorRow = 0;
+				////		minorCol = colSign;
+				////	}
+				////	Position currentPos = Shooter;
+				////	for (int i = 0; i < numOfMinorMoves; i++) {
+				////		int currentSlope = slope;
+				////		if ((numOfMinorMoves - remainder) <= i) {
+				////			currentSlope = slope + 1;
+				////			remainder--;
+				////		}
+				////		//else if (i == 0 && currentSlope != 1) {
+				////		//	currentSlope--;
+				////		//}
+				////		for (int j = 0; j < currentSlope; j++) {
+				////			currentPos = new Position(currentPos.Row - majorRow, currentPos.Column - majorCol);
+				////			path.Add(currentPos);
+				////			if (j == currentSlope / 2) {
+				////				currentPos = new Position(currentPos.Row - minorRow, currentPos.Column - minorCol);
+				////				path.Add(currentPos);
+				////			}
+				////		}
+				////	}
+				////}
+				//******************END My Alg 1***************
 			}
 			return path;
 		}
