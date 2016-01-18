@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WarChess.Objects.Items;
 
 namespace WarChess.Objects {
 	public class Unit {
-		public Unit(string Name, int Points, int Width, int Length, Config.Allegiance Allegiance, int Fighting, int ShootingSkill, int Strength, int Defense, int Attacks, int Wounds, int Might, int Will, int Fate) {
+		public Unit(string Name, int Points, int Width, int Length, Config.Allegiance Allegiance, int Fighting, int ShootingSkill, int Strength, int Defense, int Attacks, int Wounds, int Might, int Will, int Fate,List<KeyValuePair<Item,Config.ItemPair>> CompatableItems) {
 			this.Name = Name;
 			this.Points = Points;
 			this.Width = Width;
@@ -21,6 +22,7 @@ namespace WarChess.Objects {
 			this.Might = Might;
 			this.Will = Will;
 			this.Fate = Fate;
+			this.CompatableItems = CompatableItems;
 		}
 		 //TODO max move dist while shootable. put this to item
 		public Player Player { get; set; }
@@ -45,5 +47,7 @@ namespace WarChess.Objects {
 		public Position Position { get; set; }
 		public int MovementLeft { get; set; } = 3;
 		public bool HasShot { get; set; } = false;
+		public List<KeyValuePair<Item, Config.ItemPair>> CompatableItems;
+		public List<Item> EquipItems { get; set; } = new List<Item>();
 	}
 }

@@ -55,7 +55,7 @@ namespace Project1 {
 			PlacementGrid.Children.Clear();
 			images.Clear();
 			int width = 75;
-			int height = 100;			
+			int height = 75;
 			PlacementGrid.Width = cols * width;
 			PlacementGrid.Height = rows * height;
 			PlacementGrid.HorizontalAlignment = HorizontalAlignment.Left;

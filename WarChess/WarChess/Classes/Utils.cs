@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace WarChess.Objects {
 	public static class Utils {
+		public static double epsilon = 0.000001;
 		public static Random rand = new Random();
 		public static List<Player> PickPriority(List<Player> players) {
 			Player firstplayerlasttime = players[0];

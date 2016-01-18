@@ -63,7 +63,7 @@ namespace Project1 {
 
 		private void InitializeBoardGui(int rows, int cols) {
 			int width = 75;
-			int height = 100;
+			int height = 75;
             grid.Width = cols * width;
             grid.Height = rows * height;
             grid.HorizontalAlignment = HorizontalAlignment.Left;
@@ -261,7 +261,6 @@ namespace Project1 {
 			}
         }
 		private void ShowShotOptions() {
-			//make this like displayattack options
 			List<Position> ShotOptions = Game.GetShotOptions(SelectedPos);
 			for (int i = 0; i < ShotOptions.Count; i++) {
 				Position pos = ShotOptions[i];
@@ -293,6 +292,7 @@ namespace Project1 {
 					labels[pos.Row][pos.Column].Background = new SolidColorBrush(color);
 				}
 			}
+			labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Black);
 		}
         private void setguy(Position position) {
 			if (Game.GetCurrentPlayer().HasUnitLeftToPlace(lastButton.Content.ToString())) { 
@@ -532,7 +532,7 @@ namespace Project1 {
 			if (Game.Phase == Game.Phases.Shoot) {
 				if (SelectedPos != null) {
 					Position pos = GetPosOfClickedCell();
-					if ((lastHover == null || !lastHover.Equals(pos)) && !SelectedPos.Equals(pos)) {//also want to see if i have a good shot on my target buy its covered by button
+					if ((lastHover == null || !lastHover.Equals(pos)) && !SelectedPos.Equals(pos)) {//also want to see if i have a good shot on my target but its covered by button
 						lastHover = pos;
 						UpdateAllSquares();
 						ShowShot(pos);

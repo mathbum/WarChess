@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WarChess.Objects.Items;
 
 namespace WarChess.Objects {
 	public class Board {
@@ -165,20 +166,30 @@ namespace WarChess.Objects {
 		public Dictionary<Position,List<List<Position>>> GetShotOptions(Position Shooter) {
 			Unit unit = GetUnitAtPos(Shooter);
 			Dictionary<Position, List<List<Position>>> ShotOptions = new Dictionary<Position, List<List<Position>>>();
-			for(int i=0;i< Rows; i++) {
-				for(int j = 0; j < Columns; j++) {
-					Square square = board[i][j];
-					//check item range here
-					if(square.Unit!=Config.NullUnit && square.Unit.Player != unit.Player) {
-						Position pos = new Position(i, j);
-						List<List<Position>> ShotDetails = GetShotPathDetails(Shooter, pos);
-						if (ShotDetails[2].Count==0) {
-							ShotOptions[pos] = ShotDetails;
+			RangedWeapon rangedWeapon = null;
+			for (int i = 0; i < unit.EquipItems.Count; i++) {
+				Item item = unit.EquipItems[i];
+				if (item is RangedWeapon) {
+					rangedWeapon = (RangedWeapon)item;
+
+				}
+			}
+			if (rangedWeapon != null) {//should always be true. because game should only forward requests of units with a ranged weapon
+				for (int i = 0; i < Rows; i++) {
+					for (int j = 0; j < Columns; j++) {
+						Square square = board[i][j];
+						if (square.Unit != Config.NullUnit && square.Unit.Player != unit.Player) {
+							Position pos = new Position(i, j);
+							List<List<Position>> ShotDetails = GetShotPathDetails(Shooter, pos);
+							if (ShotDetails[2].Count == 0 && rangedWeapon.Range >= Shooter.Distance(pos) - Utils.epsilon) {
+								ShotOptions[pos] = ShotDetails;
+							}
 						}
 					}
 				}
+				return ShotOptions;
 			}
-			return ShotOptions;
+			throw new ArgumentException();
 		}
 		//TODO can't shoot if path is obstrubted by obsticule (or unit) or conflict (if good), out of range. Also can shoot if friendly is directly next to you (just like terrain) (rest is taken care of by game)
 		public List<List<Position>> GetShotPathDetails(Position Shooter, Position Target) {//three lists, first is good positions you can shoot over, second is obj in way pos, third is restrictions pos
@@ -211,10 +222,10 @@ namespace WarChess.Objects {
 		private List<Position> GetShotPath(Position Shooter, Position Target) {
 			int rowDiff = Target.Row - Shooter.Row;
 			int colDiff = Target.Column - Shooter.Column;
-			int rowSign = Math.Sign(rowDiff);//if positive then shooting up, if negative then shooing down
-			int colSign = Math.Sign(colDiff);//if positive then shooting left, if negative then shooting right
 			List<Position> path = new List<Position>();
 			if (rowDiff == 0 || colDiff == 0 || Math.Abs(rowDiff) == Math.Abs(colDiff)) {//shooting straight up/down or left/right or diag						
+				int rowSign = Math.Sign(rowDiff);//if positive then shooting up, if negative then shooing down
+				int colSign = Math.Sign(colDiff);//if positive then shooting left, if negative then shooting right
 				Position currentPos = Shooter;
 				for (;;) {
 					currentPos = new Position(currentPos.Row + rowSign, currentPos.Column + colSign);
@@ -226,43 +237,45 @@ namespace WarChess.Objects {
 				}
 			} else {
 				// change from step to step
-				double tValue, xGrid, yGrid, tForNextBorderX, tForNextBorderY;
+				double tValue, tForNextBorderX, tForNextBorderY;
+				int xGrid, yGrid;
 
 				// constant throughout raycast
-				double xDirection, yDirection, tForOneX, tForOneY, xStep, yStep;
+				double xDiff, yDiff, tForOneX, tForOneY;
+				int xStep, yStep;
 
 				double xEnd = Target.Column + .5;//add .5 so the los is from center of square
 				double xStart = Shooter.Column + .5;
 				double yEnd = Target.Row + .5;
 				double yStart = Shooter.Row + .5;
 
-				xDirection = xEnd - xStart;
-				yDirection = yEnd - yStart;
-				tForOneX = Math.Abs(1.0 / xDirection);
-				tForOneY = Math.Abs(1.0 / yDirection);
-				yStep = (yDirection >= 0) ? 1 : -1;
-				xStep = (xDirection >= 0) ? 1 : -1;
+				xDiff = xEnd - xStart;
+				yDiff = yEnd - yStart;
+				tForOneX = Math.Abs(1.0 / xDiff);
+				tForOneY = Math.Abs(1.0 / yDiff);
+				yStep = Math.Sign(yDiff);
+				xStep = Math.Sign(xDiff);
 
 				tValue = 0;
-				xGrid = Math.Floor(xStart);
-				yGrid = Math.Floor(yStart);
+				xGrid = (int) Math.Floor(xStart);
+				yGrid = (int) Math.Floor(yStart);
 
 				double fracStartPosX = xStart - Math.Floor(xStart);
-				if (xDirection > 0) {
+				if (xDiff > 0) {
 					tForNextBorderX = (1 - fracStartPosX) * tForOneX;
 				} else {
 					tForNextBorderX = fracStartPosX * tForOneX;
 				}
 
 				double fracStartPosY = yStart - Math.Floor(yStart);
-				if (yDirection > 0) {
+				if (yDiff > 0) {
 					tForNextBorderY = (1 - fracStartPosY) * tForOneY;
 				} else {
 					tForNextBorderY = fracStartPosY * tForOneY;
 				}
 				while (tValue <= 1.0) {
 					path.Add(new Position((int)yGrid, (int)xGrid));
-					//if (Math.Abs(tForNextBorderX - tForNextBorderY) < 0.000001) {
+					//if (Math.Abs(tForNextBorderX - tForNextBorderY) < Utils.epsilon) {
 					//	// diagonal step (normally not included in a raycast)
 					//	tValue = tForNextBorderX;
 					//	tForNextBorderX += tForOneX;

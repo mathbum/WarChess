@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WarChess.Objects.Items;
 
 namespace WarChess.Objects {
 	public class Game {//static?
@@ -74,7 +75,8 @@ namespace WarChess.Objects {
 			int Might = tempUnit.Might;
 			int Will = tempUnit.Will;
 			int Fate = tempUnit.Fate;
-			return new Unit(Name, Points, Width, Length, Allegiance, Fighting, ShootingProficiency, Strength, Defense, Attack, Wounds, Might, Will, Fate);
+			List<KeyValuePair<Item, Config.ItemPair>> CompatableItems = tempUnit.CompatableItems;
+			return new Unit(Name, Points, Width, Length, Allegiance, Fighting, ShootingProficiency, Strength, Defense, Attack, Wounds, Might, Will, Fate, CompatableItems);
 		}
 
 		public bool Move(Position originalPos, Position newPos) {
@@ -168,8 +170,11 @@ namespace WarChess.Objects {
 			int roll = Utils.RollD6(1)[0];
 			
 			if (roll == 1) {
-				BoardManager.KillUnit(unit);//...does jump kill?
-				return null;
+				Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " failed to make his jump");
+				unit.MovementLeft = 0;
+				return position;
+				//BoardManager.KillUnit(unit);//jump can wound if they jump a gap or something far
+				//return null;
 			}
 			int initCost = 0;
 			for (int i = 0; i < CurrentMoveOptions.Count; i++) {
@@ -180,8 +185,12 @@ namespace WarChess.Objects {
 			}
 			Position newPos = BoardManager.Jump(unit, position, initCost);
 			if (roll < 6) {
+				Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " made the jump but cost all his movement");
 				unit.MovementLeft = 0;
-			}//if roll==6 then leave their movement amount alone
+			} else {
+				Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " easily made the jump and cost no extra");
+				//if roll==6 then leave their movement amount alone
+			}
 			return newPos;
 		}
 		public List<List<Position>> GetShotPathDetails(Position Shooter, Position Target) {
@@ -197,11 +206,23 @@ namespace WarChess.Objects {
 		public List<Position> GetShotOptions(Position Shooter) {
 			Unit unit = BoardManager.GetUnitAtPos(Shooter);			
 			if (!unit.InConflict) {
-				//TODO check to make sure unit has an item to shoot with. check to make sure unit has enough movement left and hasn't already shot.
-				ShotOptions = BoardManager.GetShotOptions(Shooter);
-				return ShotOptions.Keys.ToList();//to display shoot buttons
+				bool canShoot = false;
+				for(int i = 0; i < unit.EquipItems.Count; i++) {
+					Item item = unit.EquipItems[i];
+					if(item is RangedWeapon) {
+						RangedWeapon rangedItem = (RangedWeapon)item;
+						if((double)unit.MovementLeft / unit.MaxMoveDist >= rangedItem.MovementCost-Utils.epsilon) {
+							canShoot = true;
+						}
+					}
+				}				
+				if (canShoot) {// check to make sure unit has an item to shoot with. check to make sure unit has enough movement left and hasn't already shot.
+					ShotOptions = BoardManager.GetShotOptions(Shooter);
+					return ShotOptions.Keys.ToList();//to display shoot buttons
+				}
 			}
-			return new List<Position>();
+			ShotOptions = new Dictionary<Position, List<List<Position>>>();
+			return ShotOptions.Keys.ToList();
 		}//when you select a unit in the shoot phase. get all shoot options. then store them in a dict. 
 		public void Shoot(Position Shooter,Position Target) {
 			List<List<Position>> ShotDetails = ShotOptions[Target];
@@ -211,11 +232,14 @@ namespace WarChess.Objects {
 				int roll = Utils.RollD6(1)[0];				
 				ShootingUnit.HasShot = true;
 				if (roll >= ShootingUnit.ShootingSkill) {//shooter hit target
+
 					List<Position> ObstructionPos = ShotDetails[1];
 					for (int i = 0; i < ObstructionPos.Count; i++) {//TODO determine if you pass obsticule based upon shootingskill?
 						//roll to see if you pass each object
 						roll = Utils.RollD6(1)[0];
 						if (roll <= 3) {//didn't pass obj
+							Unit unit = BoardManager.GetUnitAtPos(Shooter);
+							Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " missed his target, (but might still hit someone else acidentally)");
 							Square square = BoardManager.GetSquareAtPos(ObstructionPos[i]);
 							if (!square.Terrain.IsStandable) {
 								return;								
@@ -226,15 +250,23 @@ namespace WarChess.Objects {
 								//TODO deal with conflict
 								//set target based upon conflict.... this might be annoying
 							}
-						}						
-					}				
-					Unit struckUnit = BoardManager.GetUnitAtPos(Target);
-					if (Utils.ResolveStrike(3, struckUnit.Defense)) {
-						struckUnit.Wounds -= 1;
-						if (struckUnit.Wounds < 1) {
-							BoardManager.KillUnit(struckUnit);
-						}						
+						}
 					}
+					Unit struckUnit = BoardManager.GetUnitAtPos(Target);
+					if (Utils.ResolveStrike(3, struckUnit.Defense)) {//TODO strength of shot hardcoded to 3 right now.
+						struckUnit.Wounds -= 1;
+						Unit unit = BoardManager.GetUnitAtPos(Shooter);
+						Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " hit and wounded a unit (probably his target)");
+						if (struckUnit.Wounds < 1) {
+							BoardManager.KillUnit(struckUnit);							
+						}
+					}else {
+						Unit unit = BoardManager.GetUnitAtPos(Shooter);
+						Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " hit a unit (probably his target) but didn't wound him");
+					}
+				} else {
+					Unit unit = BoardManager.GetUnitAtPos(Shooter);
+					Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " missed his target");
 				}
 			}
 		}
