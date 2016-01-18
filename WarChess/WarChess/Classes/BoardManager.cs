@@ -95,7 +95,7 @@ namespace WarChess.Objects {
 			}
 			return PossibleMoves;
 		}
-		private List<List<int>> FindDistancesHelper(Board board, Unit unit, Position position) {
+		private List<List<int>> FindDistancesHelper(Board board, Unit unit, Position position) {//TODO implement able to move diagnally?
 			List<List<int>> distances = new List<List<int>>();
 			for (int i = 0; i < board.Rows; i++) {
 				List<int> row = new List<int>();

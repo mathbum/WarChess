@@ -21,6 +21,7 @@ namespace Project1 {
     public partial class SetUp : Window {
         public SetUp() {
             InitializeComponent();
+			BlankBoardRad.IsChecked = true;
         }
 		private BoardMaker BoardMaker = new BoardMaker();
 
@@ -111,6 +112,14 @@ namespace Project1 {
 		}
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e) {
 			BoardMaker.Close();
+		}
+
+		private void BoardLoader_TextChanged(object sender, TextChangedEventArgs e) {
+			BoardLoaderRad.IsChecked = true;
+		}
+
+		private void BlankLoaderTextChanged(object sender, TextChangedEventArgs e) {
+			BlankBoardRad.IsChecked = true;
 		}
 	}
 }

@@ -34,7 +34,7 @@ namespace WarChess.Objects {
 			}
 		}
 		public static Dictionary<string, Item> Items = new Dictionary<string, Item> {
-			{"Orc Bow",new RangedWeapon("Orc Bow", 4, 3, .5) },
+			{"Orc Bow",new RangedWeapon("Orc Bow", 4, 2, .5) },
 			{"Elven Bow", new RangedWeapon("Elven Bow", 6 ,3, .5) },
 			{"Crossbow", new RangedWeapon("Crossbow", 4, 4, 1) },
 			{"Throwing Axe", new RangedWeapon("Throwing Axe", 2, 3, 0) },
@@ -45,12 +45,13 @@ namespace WarChess.Objects {
 			{"Armour",new DefensiveItem("Armour", false,1) }
 			//lance
 		};
-
+		
 		//name,points,width,length,allegiance,fighting,shootingprofeciency,strength,defense,attacks,wounds,mights,wills,fates
 		public static Dictionary<string, UnitPair> Units = new Dictionary<string, UnitPair> {
-			{ "Goblin", new UnitPair(new Unit("Goblin",4,1,1,Allegiance.Evil,2,5,3,5,1,1,0,0,0), new Dictionary<Item, int> {{ Items["Orc Bow"], 1}, {Items["Armour"], 1}} ) },
+			{ "Goblin", new UnitPair(new Unit("Goblin",4,1,1,Allegiance.Evil,2,5,3,4,1,1,0,0,0), new Dictionary<Item, int> {{ Items["Orc Bow"], 1}, {Items["Armour"], 1}} ) },
 			//{ "Orc", new Unit("Orc",7,1,1,Allegiance.Evil,3,3,5,1,1,0,0,0)},
-			{ "Warrior", new UnitPair(new Unit("Warrior",9,1,1,Allegiance.Good,3,5,3,5,1,1,0,0,0), new Dictionary<Item, int> {{Items["Orc Bow"],1}} ) }
+			{ "Warrior", new UnitPair(new Unit("Warrior",7,1,1,Allegiance.Good,3,4,3,5,1,1,0,0,0), new Dictionary<Item, int> {{Items["Orc Bow"],1}} ) },
+			{"Wood Elf", new UnitPair(new Unit("Wood Elf",7,1,1,Allegiance.Good,6,3,3,3,1,1,0,0,0), new Dictionary<Item, int> {{Items["Elven Bow"],2}, {Items["Armour"],2}} ) }
 		};//TODO DO I HAVE AN EXTRA INSTANCE OF EVERY UNIT?
 		public static Unit NullUnit = new Unit("", 0, 0, 0, Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 		public static Dictionary<char, Terrain> TerrainObjs = new Dictionary<char, Terrain> {
@@ -97,7 +98,18 @@ namespace WarChess.Objects {
 				                        "          ",
 				                        "uuuuu  uu ",
 				                        "          ",
-				                        "          ",}}
+				                        "          ",}},
+			{"ten",new List<string>() {
+										"          ",
+										"  u       ",
+										"u         ",
+										"      u   ",
+										"        u ",
+										"          ",
+										"   u      ",
+										"          ",
+										"     u    ",
+										"          ",}}
 		};		
 	}	
 	//public class NullUnit : Unit { public NullUnit() : base("", 0, 0, 0, Config.Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0, 0) { } }

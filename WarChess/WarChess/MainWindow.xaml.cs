@@ -40,106 +40,79 @@ namespace Project1 {
 
 		private string LastSelectedUnitName;
 		private Dictionary<Position,Unit> unitsPlaced = new Dictionary<Position, Unit>();
-		private void InitializePlacement() {
-			combo.Items.Clear();
-			PointLimitLbl.Content = "0/" + Game.pointLimit;
-			List<string> unitNames = Config.GetUnitNames(Config.Units);
-			for(int i = 0; i < unitNames.Count; i++) {
-				combo.Items.Add(unitNames[i]);
-			}
-			combo.SelectedIndex = 0;
+		private void InitializePlacement() {			
 			EndTurnButton.Click -= EndTurn_Click;
 			EndTurnButton.Click += Setup_EndTurn_Click;
 			EndTurnButton.IsEnabled = true;
 			EndTurnButton.Content = "Finalize Placements";
+			SetUpPlacement();
 		}
-		private void combo_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-			LastSelectedUnitName = combo.SelectedItem.ToString();
+		private void SetUpPlacement() {
+			RemoveUnit.IsEnabled = false;
+			combo.Items.Clear();
+			PointLimitLbl.Content = "0/" + Game.pointLimit;
+			List<string> unitNames = Config.GetUnitNames(Config.Units);//this could also be a senario list of units
+			for (int i = 0; i < unitNames.Count; i++) {
+				combo.Items.Add(unitNames[i]);
+			}
+			combo.SelectedIndex = 0;
 		}
-		private void UpdateSquare1(Position position) {
-			Unit unitatpos = unitsPlaced[position];
-			Label labelatpos = labels[position.Row][position.Column];
-			labelatpos.Content = unitatpos.Name;
-
-			if (!(unitatpos == Config.NullUnit)) {
-				if (unitatpos.Player == Game.GetCurrentPlayer()) {
-					if (SelectedPos != null && SelectedPos == position) {
-						labelatpos.Background = new SolidColorBrush(Colors.Black);
-					} else {
-						labelatpos.Background = new SolidColorBrush(Colors.Green);
-					}
-				} else {
-					labelatpos.Background = new SolidColorBrush(Colors.Red);
-				}
-			} else {
-				labelatpos.Background = null;
+		private void combo_SelectionChanged(object sender, SelectionChangedEventArgs e) {		
+			if (combo.SelectedIndex!=-1) {
+				LastSelectedUnitName = combo.SelectedItem.ToString();
 			}
 		}
-		private void HandleClick(Position position) {
-			if (SelectedPos != null) {
-				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-				if (SelectedPos.Equals(position)) {//deselecting					
-					SelectedPos = null;
-					EquipableList.Items.Clear();
-					EquipList.Items.Clear();
-					UpdatePreview(Config.NullUnit);
-					return;
-				}				
-			}
-			if (!unitsPlaced.ContainsKey(position)) {
+		private void SetupSelect(Position position, Unit unit) {
+			if (unit == Config.NullUnit) {
 				if (!SetUnit(position)) {
 					return;
 				}
-			}
-			EquipableList.Items.Clear();
-			EquipList.Items.Clear();
-			Unit unit = unitsPlaced[position];
-			List<KeyValuePair<Item, int>> CompatableItems = Config.Units[unit.Name].CompatableItems.ToList();
-			for (int i = 0; i < CompatableItems.Count; i++) {
-				Item item = CompatableItems[i].Key;
-				if (!unit.HasItem(item)) {
-					EquipableList.Items.Add(item);
-				} else {
-					EquipList.Items.Add(item);
+				unit = unitsPlaced[position];
+			}else if (unit.Player != Game.GetCurrentPlayer()){
+				if (SelectedPos != null) {
+					labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
 				}
+				RemoveUnit.IsEnabled = false;
+				SelectedPos = null;
+				return;
 			}
 			SelectedPos = position;
-			UpdatePreview(unit);
-			UpdateSquare1(position);
-			RemoveUnit.IsEnabled = true;
-		}
-		private void RemoveUnit_Click(object sender, RoutedEventArgs e) {
-			labels[SelectedPos.Row][SelectedPos.Column].Background = null;
-			labels[SelectedPos.Row][SelectedPos.Column].Content="";
-			EquipableList.Items.Clear();
-			EquipList.Items.Clear();
-			UpdatePreview(Config.NullUnit);			
-			unitsPlaced.Remove(SelectedPos);
-			UpdatePoints();
-			RemoveUnit.IsEnabled = false;
-			SelectedPos = null;
-		}
-		private void EquipableList_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
-			Item item = (Item) EquipableList.SelectedItem;
-			if (item != null) {
-				EquipableList.Items.Remove(item);
-				EquipList.Items.Add(item);
-				Unit unit = unitsPlaced[SelectedPos];
-				int cost = Config.Units[unit.Name].CompatableItems[item];
-				unit.EquipItems.Add(new KeyValuePair<Item, int>(item, cost));
-				UpdatePreview(unit);
-				UpdatePoints();
+			UpdateLeftPane(unit);
+			UpdateSquare(position, unit);
+			if (unit.Player == Game.GetCurrentPlayer()) {
+				RemoveUnit.IsEnabled = true;
 			}
 		}
-		private void EquipList_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
-			Item item = (Item)EquipList.SelectedItem;
-			if (item != null) {
-				EquipList.Items.Remove(item);
-				EquipableList.Items.Add(item);
-				Unit unit = unitsPlaced[SelectedPos];
-				unit.RemoveItemFromEquip(item);
-				UpdatePreview(unit);
-				UpdatePoints();
+		private void RemoveUnit_Click(object sender, RoutedEventArgs e) {
+			Position pos = SelectedPos;//this is for the hack
+			UpdateSquare(SelectedPos, Config.NullUnit);
+			unitsPlaced.Remove(SelectedPos);
+			UpdatePoints();
+			DeselectUnit();
+			labels[pos.Row][pos.Column].Background = null;//this is a hack
+		}
+		private void EquipmentList_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
+			ListBox fromBox = (ListBox)sender;
+			ListBox toBox = EquipableList;
+			if (fromBox == EquipableList) {
+				toBox = EquipList;
+			}
+			Unit unit = unitsPlaced[SelectedPos];
+			SwitichItemStatus(fromBox, toBox, unit);
+			UpdatePreview(unit);
+			UpdatePoints();
+		}
+		private void SwitichItemStatus(ListBox fromBox, ListBox toBox, Unit unit) {
+			if (fromBox.SelectedIndex != -1) {
+				Item item = (Item) fromBox.SelectedItem;
+				fromBox.Items.Remove(item);
+				toBox.Items.Add(item);
+				if (toBox == EquipList) {
+					int cost = Config.Units[unit.Name].CompatableItems[item];
+					unit.EquipItems.Add(new KeyValuePair<Item, int>(item, cost));
+				} else {
+					unit.RemoveItemFromEquip(item);
+				}				
 			}
 		}
 		private bool SetUnit(Position position) {
@@ -182,6 +155,7 @@ namespace Project1 {
 		}
 		private void Setup_EndTurn_Click(object sender, RoutedEventArgs e) {
 			Game.EndTurn();
+			SetUpPlacement();
 			SelectedPos = null;
 			PlayerLabel.Content = Game.GetCurrentPlayer().Name;
 			for(int i = 0; i < labels.Count; i++) {
@@ -195,6 +169,8 @@ namespace Project1 {
 			for(int i = 0; i < units.Count; i++) {
 				Game.PlaceUnit(units[i].Position, units[i]);
 			}
+			EquipList.Items.Clear();
+			EquipableList.Items.Clear();
 			unitsPlaced.Clear();
 			UpdateAllSquares();
 			if (!Game.IsInSetup) {
@@ -203,8 +179,8 @@ namespace Project1 {
 				PhaseLabel.Content = Game.Phase;
 				MainGrid.Children.Remove(combo);
 				MainGrid.Children.Remove(RemoveUnit);
-				MainGrid.Children.Remove(EquipableList);//TODO keep these so you can equip and remove items during movement phase
-				MainGrid.Children.Remove(EquipList);
+				EquipableList.MouseDoubleClick -= EquipmentList_MouseDoubleClick;//give it some ability to equip and unequip items
+				EquipList.MouseDoubleClick -= EquipmentList_MouseDoubleClick;
 				EndTurnButton.Content = "End Turn";				
 			}
 		}
@@ -244,13 +220,11 @@ namespace Project1 {
             grid.ShowGridLines = true;
             grid.Background = new SolidColorBrush(Colors.Blue);
 
-            //grid.RowDefinitions.Clear();
             for (int i = 0; i < rows; i++) {
                 RowDefinition gridRow1 = new RowDefinition();
                 gridRow1.Height = new GridLength(height);
                 grid.RowDefinitions.Add(gridRow1);
             }
-            //grid.ColumnDefinitions.Clear();
             for (int i = 0; i < cols; i++) {
                 ColumnDefinition gridCol1 = new ColumnDefinition();
                 gridCol1.Width = new GridLength(width);
@@ -349,75 +323,107 @@ namespace Project1 {
 			}
 			return new Position(row, col);
 		}
+		private void DeselectUnit() {
+			labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
+			SelectedPos = null;
+			if (Game.IsInSetup) {
+				RemoveUnit.IsEnabled = false;
+				SelectedPos = null;
+				EquipableList.Items.Clear();
+				EquipList.Items.Clear();
+			} else if (Game.Phase == Game.Phases.Move) {//based upon phase remove gui stuff
+				RemoveGuiOptions();
+			} else if (Game.Phase == Game.Phases.Shoot) {
+				RemoveGuiOptions();//shouldn't go through code to removemoveoptions
+			}
+			UpdateLeftPane(Config.NullUnit);
+		}
 		private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {//TODO fix problem where clicking a button runs this and the button code
 			//if (e.ClickCount == 2) { // for double-click, remove this condition if only want single click
 
 			//MessageBox.Show(string.Format("Grid clicked at row {0}, column {1}", row, col));
 			// row and col now correspond Grid's RowDefinition and ColumnDefinition mouse was over when double clicked!
 			Position position = GetPosOfClickedCell();
-			UpdatePreview(Game.GetUnitAtPos(position));
-			//TODO only show preview for non null units
-			if (Game.IsInSetup) {
-				if (LastSelectedUnitName != null) {
-					HandleClick(position);
-				}
-			} else {
-				//Position lastSelectedPos = SelectedPos==null?null:new Position(SelectedPos.Row, SelectedPos.Column);
-				//if (SelectedPos != null && SelectedPos.Equals(position)) {//deslecting
-				//	labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-				//	SelectedPos = null;
-				//} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
-				//	if (SelectedPos != null) {//previously had a different unit selected
-				//		labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-				//	}
-				//	SelectedPos = position;
-				//	labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
-				//} 				
-				if (Game.Phase == Game.Phases.Move) {
-					//if (lastSelectedPos != null) {//you used to have something selected
-					//	RemoveGuiOptions();
-					//}
-					//if (SelectedPos != null) {
-					//	if (SelectedPos.Equals(position)) {//selecting your unit
-					//		DisplayGuiOptions();
-					//	} else if (!SelectedPos.Equals(position)) {//moving your unit
-					//		perfmove(position);//TODO trying to move a unit to a null position because it is supposed to be a jump.
-					//}
-					if (SelectedPos != null && SelectedPos.Equals(position)) {//deslecting
+			Unit unit = Game.GetUnitAtPos(position);
+			if (Game.IsInSetup && unitsPlaced.ContainsKey(position)) {
+				unit = unitsPlaced[position];
+			} 			
+			if(SelectedPos!=null && SelectedPos.Equals(position)) {//deselectingunit
+				DeselectUnit();
+			}else if (unit.Player == Game.GetCurrentPlayer()) {//selecting your unit
+				if (SelectedPos != null) {//had a previous unit selected			
+					if (Game.IsInSetup) {//based upon phase remove gui options
 						labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-						SelectedPos = null;
-						RemoveGuiOptions();
-					} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
-						if (SelectedPos != null) {//previously had a different unit selected
-							labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-							RemoveGuiOptions();
-						}
-						SelectedPos = position;
-						labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
-						DisplayGuiOptions();
-					} else if (SelectedPos != null) {//moving your unit
-						perfmove(position);//TODO trying to move a unit to a null position because it is supposed to be a jump.
+					} else {
+						DeselectUnit();
 					}
-				}else if(Game.Phase == Game.Phases.Shoot) {
-					if (SelectedPos != null && SelectedPos.Equals(position)) { //descecting your unit
-						SelectedPos = null;
-						RemoveGuiOptions();//shouldn't go through code to removemoveoptions
-					} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
-						if (SelectedPos != null) {//previously had a different unit selected
-							labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-							RemoveGuiOptions();
-						}
-						SelectedPos = position;
-						labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
-
-						ShowShotOptions();
-					} else if (SelectedPos != null) {
-						//UpdateAllSquares();//no
-						//ShowShot(position);
-					}
+				}
+				UpdateLeftPane(unit);
+				SelectedPos = position;
+				labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
+				if (Game.IsInSetup) {
+					SetupSelect(position, unit);
+				} else if (Game.Phase == Game.Phases.Move) {//based upon phase display gui options
+					DisplayGuiOptions();
+				} else if (Game.Phase == Game.Phases.Shoot) {
+					ShowShotOptions();
+				}				
+			} else if (SelectedPos != null && !Game.IsInSetup) {
+				if (Game.Phase == Game.Phases.Move) {//if in move phase then move unit
+					perfmove(position);
+					UpdateLeftPane(unit);
 				}			
+			}else if(Game.IsInSetup) {//if you are not deselecting, seleting another friendly unit or moveing a unit (only for movement phase) then you are placing a unit				
+				UpdateLeftPane(unit);
+				SetupSelect(position, unit);
+			}else if (unit != Config.NullUnit && unit.Player != Game.GetCurrentPlayer()) {
+				UpdateLeftPane(unit);
 			}
-        }
+
+
+
+			//TODO only show preview for non null units
+			//if (Game.IsInSetup) {
+			//	if (LastSelectedUnitName != null) {
+			//		HandleClick(position);
+			//	}
+			//} else {			
+			//	if (Game.Phase == Game.Phases.Move) {					
+			//		if (SelectedPos != null && SelectedPos.Equals(position)) {//deslecting
+			//			labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
+			//			SelectedPos = null;
+			//			RemoveGuiOptions();
+			//		} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
+			//			if (SelectedPos != null) {//previously had a different unit selected
+			//				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
+			//				RemoveGuiOptions();
+			//			}
+			//			SelectedPos = position;
+			//			labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
+			//			DisplayGuiOptions();
+			//		} else if (SelectedPos != null) {//moving your unit
+			//			perfmove(position);//TODO trying to move a unit to a null position because it is supposed to be a jump.
+			//		}
+			//	} else if (Game.Phase == Game.Phases.Shoot) {
+			//		if (SelectedPos != null && SelectedPos.Equals(position)) { //descecting your unit
+			//			SelectedPos = null;
+			//			RemoveGuiOptions();//shouldn't go through code to removemoveoptions
+			//		} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
+			//			if (SelectedPos != null) {//previously had a different unit selected
+			//				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
+			//				RemoveGuiOptions();
+			//			}
+			//			SelectedPos = position;
+			//			labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
+
+			//			ShowShotOptions();
+			//		} else if (SelectedPos != null) {
+			//			//UpdateAllSquares();//no
+			//			//ShowShot(position);
+			//		}
+			//	}
+			//}
+		}
 		private void ShowShotOptions() {
 			List<Position> ShotOptions = Game.GetShotOptions(SelectedPos);
 			for (int i = 0; i < ShotOptions.Count; i++) {
@@ -456,8 +462,8 @@ namespace Project1 {
 		private void perfmove(Position position) {
 			bool succ = Game.Move(SelectedPos, position);
 			if (succ) {
-				UpdateSquare(SelectedPos);
-				UpdateSquare(position);
+				UpdateSquare(SelectedPos,Game.GetUnitAtPos(SelectedPos));
+				UpdateSquare(position, Game.GetUnitAtPos(position));
 				SelectedPos = position;
 				RemoveGuiOptions();
 				DisplayGuiOptions();
@@ -488,7 +494,7 @@ namespace Project1 {
 			if (SelectedPos != null) {
 				RemoveGuiOptions();
 				DisplayGuiOptions();
-			} else {//unit has died
+			} else {//unit has died. currently he can't die here
 				RemoveGuiOptions();
 			}
 		}
@@ -569,15 +575,38 @@ namespace Project1 {
 			InConflictLbl.Content = Conflictlbl;
 			InConflictLbl.Background = color;
 		}
+		private void UpdateLeftPane(Unit unit) {
+			EquipableList.Items.Clear();
+			EquipList.Items.Clear();
+			if (unit != Config.NullUnit) {				
+				List<KeyValuePair<Item, int>> EquipItems = unit.EquipItems;
+				for (int i = 0; i < EquipItems.Count; i++) {
+					EquipList.Items.Add(EquipItems[i].Key);
+				}
+				if (!Game.IsInSetup) {
+					List<KeyValuePair<Item, int>> UnequipItems = unit.UnequipItems;
+					for (int i = 0; i < UnequipItems.Count; i++) {
+						EquipableList.Items.Add(UnequipItems[i].Key);
+					}
+				} else {
+					List<KeyValuePair<Item, int>> CompatableItems = Config.Units[unit.Name].CompatableItems.ToList();
+					for (int i = 0; i < CompatableItems.Count; i++) {
+						Item item = CompatableItems[i].Key;
+						if (!unit.HasItem(item)) {
+							EquipableList.Items.Add(item);
+						}
+					}
+				}							
+			}
+			UpdatePreview(unit);
+		}
 
-
-		private void UpdateSquare(Position position) {
-			Unit unitatpos = Game.GetUnitAtPos(position);
+		private void UpdateSquare(Position position,Unit unit) {
 			Label labelatpos = labels[position.Row][position.Column];
-			labelatpos.Content = unitatpos.Name;
+			labelatpos.Content = unit.Name;
 
-			if(!(unitatpos == Config.NullUnit)) {
-				if (unitatpos.Player == Game.GetCurrentPlayer()) {
+			if(unit != Config.NullUnit) {
+				if (unit.Player == Game.GetCurrentPlayer()) {
 					if (SelectedPos!=null && SelectedPos == position) {
 						labelatpos.Background = new SolidColorBrush(Colors.Black);
 					} else {
@@ -597,7 +626,7 @@ namespace Project1 {
 				position.Row = i;
 				for (int j = 0; j < labels[i].Count; j++) {
 					position.Column = j;
-					UpdateSquare(position);
+					UpdateSquare(position, Game.GetUnitAtPos(position));
 				}
 			}
 		}

@@ -53,12 +53,12 @@ namespace WarChess.Objects {
 		public Unit CreateUnit(string unitName) {
 			Unit tempUnit = Config.Units[unitName].unit;
 			string Name = unitName;
-			int Points = tempUnit.BasePoints;
+			int BasePoints = tempUnit.BasePoints;
 			int Width = tempUnit.Width;
 			int Length = tempUnit.Length;
 			Config.Allegiance Allegiance = tempUnit.Allegiance;
 			int Fighting = tempUnit.Fighting;
-			int ShootingProficiency = tempUnit.ShootingSkill;
+			int ShootingSkill = tempUnit.ShootingSkill;
 			int Strength = tempUnit.Strength;
 			int Defense = tempUnit.BaseDefense;
 			int Attack = tempUnit.Attacks;
@@ -66,7 +66,7 @@ namespace WarChess.Objects {
 			int Might = tempUnit.Might;
 			int Will = tempUnit.Will;
 			int Fate = tempUnit.Fate;
-			return new Unit(Name, Points, Width, Length, Allegiance, Fighting, ShootingProficiency, Strength, Defense, Attack, Wounds, Might, Will, Fate);
+			return new Unit(Name, BasePoints, Width, Length, Allegiance, Fighting, ShootingSkill, Strength, Defense, Attack, Wounds, Might, Will, Fate);
 		}
 
 		public bool Move(Position originalPos, Position newPos) {
@@ -84,9 +84,8 @@ namespace WarChess.Objects {
 			return CurrentMoveOptions;
 		}
 
-		//TODO avoid setup scrollview from going all over the place. 
 		//TODO memory useage?
-		//TODO scroll bars on grid? maybe zoom level? maybe map like AOE?
+		//TODO maybe zoom level? maybe map like AOE?
 
 		public List<List<Position>> GetPossibleAttackPos(Position position) {
 			Unit playersUnit = BoardManager.GetUnitAtPos(position);
@@ -162,7 +161,7 @@ namespace WarChess.Objects {
 			if (roll == 1) {
 				Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " failed to make his jump");
 				unit.MovementLeft = 0;
-				return position;
+				return unit.Position;
 				//BoardManager.KillUnit(unit);//jump can wound if they jump a gap or something far
 				//return null;
 			}
@@ -195,17 +194,14 @@ namespace WarChess.Objects {
 		}//whenever gui wants to update shot details just send them the dict values
 		public List<Position> GetShotOptions(Position Shooter) {
 			Unit unit = BoardManager.GetUnitAtPos(Shooter);			
-			if (!unit.InConflict) {
+			if (!unit.InConflict && !unit.HasShot) {
 				bool canShoot = false;
-				for(int i = 0; i < unit.EquipItems.Count; i++) {
-					Item item = unit.EquipItems[i].Key;
-					if(item is RangedWeapon) {
-						RangedWeapon rangedItem = (RangedWeapon)item;
-						if((double)unit.MovementLeft / unit.MaxMoveDist >= rangedItem.MovementCost-Utils.epsilon) {
-							canShoot = true;
-						}
+				RangedWeapon rangedItem = unit.GetRangedWeapon();
+				if (rangedItem != null) {
+					if ((double)unit.MovementLeft / unit.MaxMoveDist >= rangedItem.MovementCost - Utils.epsilon) {
+						canShoot = true;
 					}
-				}				
+				}
 				if (canShoot) {// check to make sure unit has an item to shoot with. check to make sure unit has enough movement left and hasn't already shot.
 					ShotOptions = BoardManager.GetShotOptions(Shooter);
 					return ShotOptions.Keys.ToList();//to display shoot buttons
@@ -218,11 +214,11 @@ namespace WarChess.Objects {
 			List<List<Position>> ShotDetails = ShotOptions[Target];
 			List<Position> PosPreventingShot = ShotDetails[2];
 			Unit ShootingUnit = BoardManager.GetUnitAtPos(Shooter);
-			if (PosPreventingShot.Count == 0 && !ShootingUnit.HasShot) {
+			RangedWeapon rangedItem = ShootingUnit.GetRangedWeapon();
+			if (PosPreventingShot.Count == 0 && !ShootingUnit.HasShot && rangedItem!=null) {//ranged item should never be null
 				int roll = Utils.RollD6(1)[0];				
 				ShootingUnit.HasShot = true;
 				if (roll >= ShootingUnit.ShootingSkill) {//shooter hit target
-
 					List<Position> ObstructionPos = ShotDetails[1];
 					for (int i = 0; i < ObstructionPos.Count; i++) {//TODO determine if you pass obsticule based upon shootingskill?
 						//roll to see if you pass each object
@@ -243,7 +239,7 @@ namespace WarChess.Objects {
 						}
 					}
 					Unit struckUnit = BoardManager.GetUnitAtPos(Target);
-					if (Utils.ResolveStrike(3, struckUnit.GetDefense())) {//TODO strength of shot hardcoded to 3 right now.
+					if (Utils.ResolveStrike(rangedItem.Strength, struckUnit.GetDefense())) {
 						struckUnit.Wounds -= 1;
 						Unit unit = BoardManager.GetUnitAtPos(Shooter);
 						Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " hit and wounded a unit (probably his target)");

@@ -31,10 +31,10 @@
         </Grid>
         <Label x:Name="PointLimitLbl" Content="1/10" HorizontalAlignment="Left" Height="28" Margin="38,12,0,0" VerticalAlignment="Top" Width="91"/>
 
-        <ComboBox x:Name="combo" Margin="12,335,615,228" SelectionChanged="combo_SelectionChanged">
+        <ComboBox x:Name="combo" Margin="12,335,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" SelectionChanged="combo_SelectionChanged" Height="30" Width="130">
         </ComboBox>
-        <ListBox x:Name="EquipList" Margin="10,204,691,337" MouseDoubleClick="EquipList_MouseDoubleClick"/>
-        <ListBox x:Name="EquipableList" Margin="86,203,615,337" MouseDoubleClick="EquipableList_MouseDoubleClick"/>
+        <ListBox x:Name="EquipList" Margin="10,204,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" MouseDoubleClick="EquipmentList_MouseDoubleClick" Height="50" Width="71"/>
+        <ListBox x:Name="EquipableList" Margin="86,203,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" MouseDoubleClick="EquipmentList_MouseDoubleClick" Height="50" Width="76"/>
         <Button x:Name="RemoveUnit" Content="Remove Unit" HorizontalAlignment="Left" Height="53" Margin="38,259,0,0" VerticalAlignment="Top" Width="79" Click="RemoveUnit_Click"/>
         <!--<CheckBox x:Name="ShowshotcheckBox" Content="Show Shot" HorizontalAlignment="Left" Height="16" Margin="209,70,0,0" VerticalAlignment="Top" Width="102"/>-->
     </Grid>

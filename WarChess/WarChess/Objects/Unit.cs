@@ -14,7 +14,7 @@ namespace WarChess.Objects {
 			this.Length = Length;
 			this.Allegiance = Allegiance;
 			this.Fighting = Fighting;
-			this.ShootingSkill = this.ShootingSkill;
+			this.ShootingSkill = ShootingSkill;
 			this.Strength = Strength;
 			this.BaseDefense = BaseDefense;
 			this.Attacks = Attacks;
@@ -30,7 +30,7 @@ namespace WarChess.Objects {
 		public int Width { get; protected set; }
 		public int Length { get; protected set; }
 		public Config.Allegiance Allegiance { get; protected set; }
-		public int Fighting {get; protected set;} 
+		public int Fighting {get; protected set;}
 		public int ShootingSkill { get; protected set; }
 		public int Strength { get; protected set; }
 		public int BaseDefense;
@@ -66,6 +66,15 @@ namespace WarChess.Objects {
 		}
 		public void UnequipItem(Item item) {
 			SwitchItem(EquipItems, UnequipItems, item);
+		}
+		public RangedWeapon GetRangedWeapon() {//this assumes a unit can only have 1 ranged weapon
+			for(int i = 0; i < EquipItems.Count; i++) {
+				Item item = EquipItems[i].Key;
+				if (item is RangedWeapon) {
+					return (RangedWeapon) item;
+				}
+			}
+			return null;
 		}
 		public bool HasItem(Item item) {
 			foreach (KeyValuePair<Item, int> kvp in EquipItems) {
