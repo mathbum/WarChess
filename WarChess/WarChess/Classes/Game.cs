@@ -21,6 +21,7 @@ namespace WarChess.Objects {
 		//public enum Phases { Priority, Move, Shoot, Fight };//TODO need end phase? 	do i need priotiry phase?
 		public enum Phases { Move, Shoot };//TODO need end phase? 	do i need priotiry phase?
 		private List<Player> Players;
+		public int pointLimit { get; set; }
 		private int PlayerTurnIndex = 0;
 		private ConflictManager conflictManager = new ConflictManager();
 		private List<KeyValuePair<Position, int>> CurrentMoveOptions;
@@ -29,20 +30,7 @@ namespace WarChess.Objects {
 
 
 		public bool PlaceUnit(Position position,Unit unit) {
-			bool succ = BoardManager.PlaceUnit(position, unit);
-			if (succ) {
-				Dictionary<string, int> unitstoplace = GetCurrentPlayer().UnitsToPlace;
-				if (unitstoplace.ContainsKey(unit.Name)) {//this should always be true. 					
-					if (unitstoplace[unit.Name] == 1) {
-						GetCurrentPlayer().UnitsToPlace.Remove(unit.Name);
-					} else {
-						unitstoplace[unit.Name] = unitstoplace[unit.Name] - 1;
-					}
-				} else {
-					throw new ArgumentException();//someone has placed a unit that they aren't allowed to be placing
-				}								
-			}
-			return succ;
+			return BoardManager.PlaceUnit(position, unit);
 		}
 		public int GetBoardRows() {
 			return BoardManager.GetRows();
@@ -59,24 +47,26 @@ namespace WarChess.Objects {
 		public Player GetCurrentPlayer() {
 			return Players[PlayerTurnIndex];
 		}
+		public bool IsValidPlacement(Position position) {
+			return BoardManager.IsValidPlacement(position);
+		}
 		public Unit CreateUnit(string unitName) {
-			Unit tempUnit = Config.Units[unitName];
+			Unit tempUnit = Config.Units[unitName].unit;
 			string Name = unitName;
-			int Points = tempUnit.Points;
+			int Points = tempUnit.BasePoints;
 			int Width = tempUnit.Width;
 			int Length = tempUnit.Length;
 			Config.Allegiance Allegiance = tempUnit.Allegiance;
 			int Fighting = tempUnit.Fighting;
 			int ShootingProficiency = tempUnit.ShootingSkill;
 			int Strength = tempUnit.Strength;
-			int Defense = tempUnit.Defense;
+			int Defense = tempUnit.BaseDefense;
 			int Attack = tempUnit.Attacks;
 			int Wounds = tempUnit.Wounds;
 			int Might = tempUnit.Might;
 			int Will = tempUnit.Will;
 			int Fate = tempUnit.Fate;
-			List<KeyValuePair<Item, Config.ItemPair>> CompatableItems = tempUnit.CompatableItems;
-			return new Unit(Name, Points, Width, Length, Allegiance, Fighting, ShootingProficiency, Strength, Defense, Attack, Wounds, Might, Will, Fate, CompatableItems);
+			return new Unit(Name, Points, Width, Length, Allegiance, Fighting, ShootingProficiency, Strength, Defense, Attack, Wounds, Might, Will, Fate);
 		}
 
 		public bool Move(Position originalPos, Position newPos) {
@@ -149,7 +139,7 @@ namespace WarChess.Objects {
 			}
 			int WoundsInflicted = 0;
 			for (int i = 0; i < StrickingUnits.Count; i++) {//sums total wounds to that unit
-				if (Utils.ResolveStrike(StrickingUnits[i].Strength,struckUnit.Defense)) {
+				if (Utils.ResolveStrike(StrickingUnits[i].Strength,struckUnit.GetDefense())) {
 					WoundsInflicted += 1;
 				}
 			}
@@ -208,7 +198,7 @@ namespace WarChess.Objects {
 			if (!unit.InConflict) {
 				bool canShoot = false;
 				for(int i = 0; i < unit.EquipItems.Count; i++) {
-					Item item = unit.EquipItems[i];
+					Item item = unit.EquipItems[i].Key;
 					if(item is RangedWeapon) {
 						RangedWeapon rangedItem = (RangedWeapon)item;
 						if((double)unit.MovementLeft / unit.MaxMoveDist >= rangedItem.MovementCost-Utils.epsilon) {
@@ -253,7 +243,7 @@ namespace WarChess.Objects {
 						}
 					}
 					Unit struckUnit = BoardManager.GetUnitAtPos(Target);
-					if (Utils.ResolveStrike(3, struckUnit.Defense)) {//TODO strength of shot hardcoded to 3 right now.
+					if (Utils.ResolveStrike(3, struckUnit.GetDefense())) {//TODO strength of shot hardcoded to 3 right now.
 						struckUnit.Wounds -= 1;
 						Unit unit = BoardManager.GetUnitAtPos(Shooter);
 						Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " hit and wounded a unit (probably his target)");

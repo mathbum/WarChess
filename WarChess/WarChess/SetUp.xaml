@@ -8,20 +8,20 @@
     Title="SetUp" Height="370.612" Width="183.459">
     <Grid Margin="0,0,0,0">
         <Button x:Name="button" Content="Create" HorizontalAlignment="Left" Margin="47,296,0,0" VerticalAlignment="Top" Width="75" Click="button_Click"/>
-        <!--<TextBox x:Name="PointLimit" HorizontalAlignment="Left" Height="27" Margin="85,94,0,0" TextWrapping="Wrap" Text="25" VerticalAlignment="Top" Width="51"/>
-        <Label Content="Point Limit" HorizontalAlignment="Left" Height="27" Margin="18,94,0,0" VerticalAlignment="Top" Width="51"/>-->
+        <TextBox x:Name="PointLimit" HorizontalAlignment="Left" Height="27" Margin="85,101,0,0" TextWrapping="Wrap" Text="25" VerticalAlignment="Top" Width="51"/>
+        <Label Content="Point Limit" HorizontalAlignment="Left" Height="27" Margin="18,101,0,0" VerticalAlignment="Top" Width="51"/>
         <TextBox x:Name="player1txtbox" HorizontalAlignment="Left" Height="23" Margin="18,148,0,0" TextWrapping="Wrap" Text="Player1" VerticalAlignment="Top" Width="51"/>
         <TextBox x:Name="player2txtbox" HorizontalAlignment="Left" Height="23" Margin="85,148,0,0" TextWrapping="Wrap" Text="Player2" VerticalAlignment="Top" Width="51"/>
-        <ScrollViewer Margin="10,191,0,0" Width="150" Height="100" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Left" VerticalAlignment="Top">
+        <!--<ScrollViewer Margin="10,191,0,0" Width="150" Height="100" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Left" VerticalAlignment="Top">
             <Grid x:Name ="UnitGrid" Background="Blue"/>
-        </ScrollViewer>
+        </ScrollViewer>-->
         <Label x:Name="PointsLabel" Content="0" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="27" Margin="47,121,0,0" VerticalAlignment="Top" Width="51"/>
         <GroupBox x:Name="groupBox" Header="Board" HorizontalAlignment="Left" Height="91" Margin="10,10,0,0" VerticalAlignment="Top" Width="155">
             <Grid>
                 <Button x:Name="BuildBoard" Content="Generate Board" HorizontalAlignment="Left" Margin="23,52,0,1" Width="93" Click="BuildBoard_Click"/>
                 <TextBox x:Name="BoardLoader" HorizontalAlignment="Left" Height="19" Margin="48,0,0,0" TextWrapping="Wrap" Text="BoardName" VerticalAlignment="Top" Width="85"/>
-                <TextBox x:Name="trows" HorizontalAlignment="Left" Height="23" Margin="48,24,0,0" TextWrapping="Wrap" Text="4" VerticalAlignment="Top" Width="32"/>
-                <TextBox x:Name="tcols" HorizontalAlignment="Left" Height="23" Margin="101,24,0,0" TextWrapping="Wrap" Text="5" VerticalAlignment="Top" Width="32"/>
+                <TextBox x:Name="trows" HorizontalAlignment="Left" Height="23" Margin="48,24,0,0" TextWrapping="Wrap" Text="6" VerticalAlignment="Top" Width="32"/>
+                <TextBox x:Name="tcols" HorizontalAlignment="Left" Height="23" Margin="101,24,0,0" TextWrapping="Wrap" Text="6" VerticalAlignment="Top" Width="32"/>
                 <RadioButton x:Name="BoardLoaderRad" Content="RadioButton" HorizontalAlignment="Left" Height="13" Margin="10,3,0,0" VerticalAlignment="Top" Width="14"/>
                 <RadioButton x:Name="BlankBoardRad" Content="RadioButton" HorizontalAlignment="Left" Height="13" Margin="10,27,0,0" VerticalAlignment="Top" Width="14" IsChecked="True"/>
             </Grid>

@@ -130,7 +130,7 @@ namespace WarChess.Objects {
 			}
 			return isValidPlacement;
 		}
-		private bool IsValidPlacement(Position position) {//TODO finish this. with legal placement areas etc...
+		public bool IsValidPlacement(Position position) {//TODO finish this. with legal placement areas etc...
 			Square square = GetSquareAtPos(position);
 			if (square.Unit != Config.NullUnit || !square.Terrain.IsStandable) {
 				return false;
@@ -168,7 +168,7 @@ namespace WarChess.Objects {
 			Dictionary<Position, List<List<Position>>> ShotOptions = new Dictionary<Position, List<List<Position>>>();
 			RangedWeapon rangedWeapon = null;
 			for (int i = 0; i < unit.EquipItems.Count; i++) {
-				Item item = unit.EquipItems[i];
+				Item item = unit.EquipItems[i].Key;
 				if (item is RangedWeapon) {
 					rangedWeapon = (RangedWeapon)item;
 

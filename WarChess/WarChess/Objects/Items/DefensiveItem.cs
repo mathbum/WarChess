@@ -5,11 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace WarChess.Objects.Items {
-	public class DefensiveItems: Item {
+	public class DefensiveItem: Item {
 		public bool IsShield;
 		public int DefenseBoost;
-		public DefensiveItems(bool IsShield, int DefenseBoost) {
-			this.IsShield = IsShield;
+		public DefensiveItem(string Name, bool IsShield, int DefenseBoost) {
+			this.Name=Name;
+            this.IsShield = IsShield;
 			this.DefenseBoost = DefenseBoost;
 		}
 	}

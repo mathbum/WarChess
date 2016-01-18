@@ -22,7 +22,7 @@ namespace WarChess.Objects {
 		public double Distance(Position pos) {
 			int rowDiff = Math.Abs(Row - pos.Row);
 			int colDiff = Math.Abs(Column - pos.Column);
-			return Math.Sqrt(rowDiff ^ 2 + colDiff ^ 2);
+			return Math.Sqrt(Math.Pow(rowDiff,2) + Math.Pow(colDiff, 2));
 		}
 		public override bool Equals(Object p) {
 			if ((object)p == null) {

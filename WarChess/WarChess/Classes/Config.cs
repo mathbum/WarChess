@@ -8,9 +8,9 @@ using WarChess.Objects.Items;
 namespace WarChess.Objects {
 	public static class Config {		
 		public enum Allegiance { Good, Evil, Neutral };
-		public static List<string> GetUnitNames(Dictionary<string, Unit> dict) {
+		public static List<string> GetUnitNames(Dictionary<string, UnitPair> dict) {
 			List<string> UnitNames = new List<string>();
-			List<KeyValuePair<string, Unit>> dictList = dict.ToList();
+			List<KeyValuePair<string, UnitPair>> dictList = dict.ToList();
 			for (int i = 0; i < dictList.Count; i++) {
 				UnitNames.Add(dictList[i].Key);
 			}
@@ -25,33 +25,34 @@ namespace WarChess.Objects {
 			return TerrainKeys;
 		}
 
-		public struct ItemPair {
-			public int points;
-			public bool HasItem;
-			public ItemPair(int points) {
-				this.points = points;
-				HasItem = false;
+		public struct UnitPair{
+			public Unit unit;
+			public Dictionary<Item, int> CompatableItems;
+			public UnitPair(Unit unit, Dictionary<Item, int> CompatableItems) {
+				this.unit = unit;
+				this.CompatableItems = CompatableItems;
 			}
 		}
-		public static Dictionary<string, Item> Items = new Dictionary<string, Item>() {
-			{"Orc Bow",new RangedWeapon(4, 3, .5) },
-			{"Elven Bow", new RangedWeapon(6 ,3, .5) },
-			{"Crossbow", new RangedWeapon(4, 4, 1) },
-			{"Throwing Axe", new RangedWeapon(2, 3, 0) },
-			{"Shield", new DefensiveItems(true, 1) },
-			{"Spear",new HandWeapon(false, 1) },
-			{"pike", new HandWeapon(false, 2) },//is this a two handed weapon?
-			{"Elven Spear", new HandWeapon(false, 1) },//this can be set to two handed or not, player choice
+		public static Dictionary<string, Item> Items = new Dictionary<string, Item> {
+			{"Orc Bow",new RangedWeapon("Orc Bow", 4, 3, .5) },
+			{"Elven Bow", new RangedWeapon("Elven Bow", 6 ,3, .5) },
+			{"Crossbow", new RangedWeapon("Crossbow", 4, 4, 1) },
+			{"Throwing Axe", new RangedWeapon("Throwing Axe", 2, 3, 0) },
+			{"Shield", new DefensiveItem("Shield", true, 1) },
+			{"Spear",new HandWeapon("Spear", false, 1) },
+			{"Pike", new HandWeapon("Pike", false, 2) },//is this a two handed weapon?
+			{"Elven Spear", new HandWeapon("Elven Spear", false, 1) },//this can be set to two handed or not, player choice
+			{"Armour",new DefensiveItem("Armour", false,1) }
 			//lance
 		};
 
 		//name,points,width,length,allegiance,fighting,shootingprofeciency,strength,defense,attacks,wounds,mights,wills,fates
-		public static Dictionary<string, Unit> Units = new Dictionary<string, Unit> {
-			{ "Goblin", new Unit("Goblin",4,1,1,Allegiance.Evil,2,5,3,5,1,1,0,0,0, new List<KeyValuePair<Item,ItemPair>>() {new KeyValuePair<Item, ItemPair>( Items["Orc Bow"],new ItemPair(1))}) },
+		public static Dictionary<string, UnitPair> Units = new Dictionary<string, UnitPair> {
+			{ "Goblin", new UnitPair(new Unit("Goblin",4,1,1,Allegiance.Evil,2,5,3,5,1,1,0,0,0), new Dictionary<Item, int> {{ Items["Orc Bow"], 1}, {Items["Armour"], 1}} ) },
 			//{ "Orc", new Unit("Orc",7,1,1,Allegiance.Evil,3,3,5,1,1,0,0,0)},
-			{ "Warrior",new Unit("Warrior",9,1,1,Allegiance.Good,3,5,3,5,1,1,0,0,0,new List<KeyValuePair<Item,ItemPair>>() {new KeyValuePair<Item, ItemPair>( Items["Orc Bow"],new ItemPair(1))}) }
+			{ "Warrior", new UnitPair(new Unit("Warrior",9,1,1,Allegiance.Good,3,5,3,5,1,1,0,0,0), new Dictionary<Item, int> {{Items["Orc Bow"],1}} ) }
 		};//TODO DO I HAVE AN EXTRA INSTANCE OF EVERY UNIT?
-		public static Unit NullUnit = new Unit("", 0, 0, 0, Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0, 0, 0, new List<KeyValuePair<Item, ItemPair>>());
+		public static Unit NullUnit = new Unit("", 0, 0, 0, Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 		public static Dictionary<char, Terrain> TerrainObjs = new Dictionary<char, Terrain> {
 			{' ',new Terrain("Grass","grasss.png",true,true,false,1) },
 			{'u',new Terrain("Short Wall","ShortWalls.png",false,true,true,1) }

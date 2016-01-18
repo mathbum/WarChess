@@ -11,11 +11,11 @@ namespace WarChess.Objects.Items {
 		public double MovementCost;//measured in %
 		public bool IsThrowable;//can be even thrown in movement phase.... this might be fun
 
-		public RangedWeapon(int Range, int Strength, double MovementCost) {
+		public RangedWeapon(string Name, int Range, int Strength, double MovementCost) {
+			this.Name = Name;
 			this.Range = Range;
 			this.Strength = Strength;
 			this.MovementCost = MovementCost;
-
 		}
 	}
 }

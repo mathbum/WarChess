@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using WarChess.Objects;
+using WarChess.Objects.Items;
 
 namespace Project1 {
     /// <summary>
@@ -22,7 +24,6 @@ namespace Project1 {
 
 		private Game Game;
 		private List<List<Label>> labels;
-		private Button lastButton = null;//TODO should be able to be moved
 		private Position SelectedPos = null;
 		private List<Button> actionButtons = new List<Button>();
 		private List<Rectangle> conflictRectangles = new List<Rectangle>();
@@ -34,32 +35,204 @@ namespace Project1 {
 			int cols = this.Game.GetBoardColumns();
 			PlayerLabel.Content = this.Game.GetCurrentPlayer().Name;
 			InitializeBoardGui(rows, cols);
-			PopulateUnitPlacementGrid(this.Game.GetCurrentPlayer().UnitsToPlace.ToList());
+			InitializePlacement();
 		}
-		private void PopulateUnitPlacementGrid(List<KeyValuePair<string, int>> UnitCount) {
-			UnitGrid.Children.Clear();
-			UnitGrid.RowDefinitions.Clear();
-			UnitGrid.ColumnDefinitions.Clear();
-			int unitButtonWidth = 75;
-			int height = 25;
-			int labelWidth = 45;
-			ColumnDefinition gridCol = new ColumnDefinition();
-			gridCol.Width = new GridLength(unitButtonWidth);
-			UnitGrid.ColumnDefinitions.Add(gridCol);
-			ColumnDefinition gridCol1 = new ColumnDefinition();
-			gridCol1.Width = new GridLength(labelWidth);
-			UnitGrid.ColumnDefinitions.Add(gridCol1);
-			UnitGrid.Height = UnitCount.Count * height;
-			for (int i = 0; i < UnitCount.Count; i++) {
-				RowDefinition gridRow = new RowDefinition();
-				gridRow.Height = new GridLength(height);
-				UnitGrid.RowDefinitions.Add(gridRow);
 
-				Label l2 = CreateLabel(labelWidth, height, UnitCount[i].Value.ToString(), UnitGrid, i, 1);
-				Button b2 = CreateButton(unitButtonWidth, height, UnitCount[i].Key, dynClick, UnitGrid, i, 0);
-				b2.Tag = l2;
+		private string LastSelectedUnitName;
+		private Dictionary<Position,Unit> unitsPlaced = new Dictionary<Position, Unit>();
+		private void InitializePlacement() {
+			combo.Items.Clear();
+			PointLimitLbl.Content = "0/" + Game.pointLimit;
+			List<string> unitNames = Config.GetUnitNames(Config.Units);
+			for(int i = 0; i < unitNames.Count; i++) {
+				combo.Items.Add(unitNames[i]);
 			}
-        }
+			combo.SelectedIndex = 0;
+			EndTurnButton.Click -= EndTurn_Click;
+			EndTurnButton.Click += Setup_EndTurn_Click;
+			EndTurnButton.IsEnabled = true;
+			EndTurnButton.Content = "Finalize Placements";
+		}
+		private void combo_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+			LastSelectedUnitName = combo.SelectedItem.ToString();
+		}
+		private void UpdateSquare1(Position position) {
+			Unit unitatpos = unitsPlaced[position];
+			Label labelatpos = labels[position.Row][position.Column];
+			labelatpos.Content = unitatpos.Name;
+
+			if (!(unitatpos == Config.NullUnit)) {
+				if (unitatpos.Player == Game.GetCurrentPlayer()) {
+					if (SelectedPos != null && SelectedPos == position) {
+						labelatpos.Background = new SolidColorBrush(Colors.Black);
+					} else {
+						labelatpos.Background = new SolidColorBrush(Colors.Green);
+					}
+				} else {
+					labelatpos.Background = new SolidColorBrush(Colors.Red);
+				}
+			} else {
+				labelatpos.Background = null;
+			}
+		}
+		private void HandleClick(Position position) {
+			if (SelectedPos != null) {
+				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
+				if (SelectedPos.Equals(position)) {//deselecting					
+					SelectedPos = null;
+					EquipableList.Items.Clear();
+					EquipList.Items.Clear();
+					UpdatePreview(Config.NullUnit);
+					return;
+				}				
+			}
+			if (!unitsPlaced.ContainsKey(position)) {
+				if (!SetUnit(position)) {
+					return;
+				}
+			}
+			EquipableList.Items.Clear();
+			EquipList.Items.Clear();
+			Unit unit = unitsPlaced[position];
+			List<KeyValuePair<Item, int>> CompatableItems = Config.Units[unit.Name].CompatableItems.ToList();
+			for (int i = 0; i < CompatableItems.Count; i++) {
+				Item item = CompatableItems[i].Key;
+				if (!unit.HasItem(item)) {
+					EquipableList.Items.Add(item);
+				} else {
+					EquipList.Items.Add(item);
+				}
+			}
+			SelectedPos = position;
+			UpdatePreview(unit);
+			UpdateSquare1(position);
+			RemoveUnit.IsEnabled = true;
+		}
+		private void RemoveUnit_Click(object sender, RoutedEventArgs e) {
+			labels[SelectedPos.Row][SelectedPos.Column].Background = null;
+			labels[SelectedPos.Row][SelectedPos.Column].Content="";
+			EquipableList.Items.Clear();
+			EquipList.Items.Clear();
+			UpdatePreview(Config.NullUnit);			
+			unitsPlaced.Remove(SelectedPos);
+			UpdatePoints();
+			RemoveUnit.IsEnabled = false;
+			SelectedPos = null;
+		}
+		private void EquipableList_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
+			Item item = (Item) EquipableList.SelectedItem;
+			if (item != null) {
+				EquipableList.Items.Remove(item);
+				EquipList.Items.Add(item);
+				Unit unit = unitsPlaced[SelectedPos];
+				int cost = Config.Units[unit.Name].CompatableItems[item];
+				unit.EquipItems.Add(new KeyValuePair<Item, int>(item, cost));
+				UpdatePreview(unit);
+				UpdatePoints();
+			}
+		}
+		private void EquipList_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
+			Item item = (Item)EquipList.SelectedItem;
+			if (item != null) {
+				EquipList.Items.Remove(item);
+				EquipableList.Items.Add(item);
+				Unit unit = unitsPlaced[SelectedPos];
+				unit.RemoveItemFromEquip(item);
+				UpdatePreview(unit);
+				UpdatePoints();
+			}
+		}
+		private bool SetUnit(Position position) {
+			if (Game.IsValidPlacement(position)) {
+				Unit unit = Game.CreateUnit(LastSelectedUnitName);
+				unit.Position = position;
+				unit.Player = Game.GetCurrentPlayer();
+				unitsPlaced[position] = unit;
+				displayPlacement();
+				UpdatePoints();
+				return true;
+			} else {
+				return false;
+			}
+		}
+		private int CalculatePoints(List<Unit> units) {
+			int points = 0;
+			for(int i = 0; i < units.Count; i++) {
+				points += units[i].GetPoints();
+			}
+			return points;
+		}
+		private void UpdatePoints() {
+			int points = CalculatePoints(unitsPlaced.Values.ToList());
+			PointLimitLbl.Content = points + "/" + Game.pointLimit;
+			if (points <= Game.pointLimit) {
+				EndTurnButton.IsEnabled = true;
+				PointLimitLbl.Foreground = new SolidColorBrush(Colors.Black);
+			} else {
+				PointLimitLbl.Foreground = new SolidColorBrush(Colors.Red);
+				EndTurnButton.IsEnabled = false;
+			}
+		}
+		private void displayPlacement() {
+			foreach(KeyValuePair<Position,Unit> kvp in unitsPlaced) {
+				Label l = labels[kvp.Key.Row][kvp.Key.Column];
+				l.Content = kvp.Value.Name;
+				l.Background = new SolidColorBrush(Colors.Green);
+			}
+		}
+		private void Setup_EndTurn_Click(object sender, RoutedEventArgs e) {
+			Game.EndTurn();
+			SelectedPos = null;
+			PlayerLabel.Content = Game.GetCurrentPlayer().Name;
+			for(int i = 0; i < labels.Count; i++) {
+				for(int j = 0; j < labels[i].Count; j++) {
+					Label l = labels[i][j];
+					l.Content = "";
+					l.Background = null;
+				}
+			}
+			List<Unit> units = unitsPlaced.Values.ToList();
+			for(int i = 0; i < units.Count; i++) {
+				Game.PlaceUnit(units[i].Position, units[i]);
+			}
+			unitsPlaced.Clear();
+			UpdateAllSquares();
+			if (!Game.IsInSetup) {
+				EndTurnButton.Click -= Setup_EndTurn_Click;
+				EndTurnButton.Click += EndTurn_Click;
+				PhaseLabel.Content = Game.Phase;
+				MainGrid.Children.Remove(combo);
+				MainGrid.Children.Remove(RemoveUnit);
+				MainGrid.Children.Remove(EquipableList);//TODO keep these so you can equip and remove items during movement phase
+				MainGrid.Children.Remove(EquipList);
+				EndTurnButton.Content = "End Turn";				
+			}
+		}
+
+		//private void PopulateUnitPlacementGrid(List<KeyValuePair<string, int>> UnitCount) {
+		//	UnitGrid.Children.Clear();
+		//	UnitGrid.RowDefinitions.Clear();
+		//	UnitGrid.ColumnDefinitions.Clear();
+		//	int unitButtonWidth = 75;
+		//	int height = 25;
+		//	int labelWidth = 45;
+		//	ColumnDefinition gridCol = new ColumnDefinition();
+		//	gridCol.Width = new GridLength(unitButtonWidth);
+		//	UnitGrid.ColumnDefinitions.Add(gridCol);
+		//	ColumnDefinition gridCol1 = new ColumnDefinition();
+		//	gridCol1.Width = new GridLength(labelWidth);
+		//	UnitGrid.ColumnDefinitions.Add(gridCol1);
+		//	UnitGrid.Height = UnitCount.Count * height;
+		//	for (int i = 0; i < UnitCount.Count; i++) {
+		//		RowDefinition gridRow = new RowDefinition();
+		//		gridRow.Height = new GridLength(height);
+		//		UnitGrid.RowDefinitions.Add(gridRow);
+
+		//		Label l2 = CreateLabel(labelWidth, height, UnitCount[i].Value.ToString(), UnitGrid, i, 1);
+		//		Button b2 = CreateButton(unitButtonWidth, height, UnitCount[i].Key, dynClick, UnitGrid, i, 0);
+		//		b2.Tag = l2;
+		//	}
+		//      }
 
 		private void InitializeBoardGui(int rows, int cols) {
 			int width = 75;
@@ -151,9 +324,6 @@ namespace Project1 {
 			return lbl;
 		}
 
-		private void dynClick(object sender, RoutedEventArgs e) {
-			lastButton = (Button)sender;
-		}
 		private Position GetPosOfClickedCell() {
 			var point = Mouse.GetPosition(grid);
 
@@ -185,11 +355,11 @@ namespace Project1 {
 			//MessageBox.Show(string.Format("Grid clicked at row {0}, column {1}", row, col));
 			// row and col now correspond Grid's RowDefinition and ColumnDefinition mouse was over when double clicked!
 			Position position = GetPosOfClickedCell();
-			UpdatePreview(position);
+			UpdatePreview(Game.GetUnitAtPos(position));
 			//TODO only show preview for non null units
 			if (Game.IsInSetup) {
-				if (lastButton != null) {
-					setguy(position);
+				if (LastSelectedUnitName != null) {
+					HandleClick(position);
 				}
 			} else {
 				//Position lastSelectedPos = SelectedPos==null?null:new Position(SelectedPos.Row, SelectedPos.Column);
@@ -246,25 +416,13 @@ namespace Project1 {
 						//ShowShot(position);
 					}
 				}			
-				//} else if(Game.Phase == Game.Phases.Shoot) {
-				//	if (lastSelectedPos != null && lastSelectedPos.Equals(position)) {//deslected
-				//		//RemoveGuiOptions();
-				//	} else if (SelectedPos.Equals(position)) {//selecting your unit
-				//		//if (lastSelectedPos != null) {//previously had a different unit selected
-				//		//	RemoveGuiOptions();
-				//		//}
-				//		//DisplayGuiOptions();
-				//	} else if (!SelectedPos.Equals(position)) {//Clicked On Someone To Shoot
-				//		ShowShot(position);
-				//	}
-				//}
 			}
         }
 		private void ShowShotOptions() {
 			List<Position> ShotOptions = Game.GetShotOptions(SelectedPos);
 			for (int i = 0; i < ShotOptions.Count; i++) {
 				Position pos = ShotOptions[i];
-				Button b = CreateButton(45, 40, "Shoot", ShootTarget, grid, pos.Row, pos.Column);
+				Button b = CreateButton(40, 35, "Shoot", ShootTarget, grid, pos.Row, pos.Column);
 				actionButtons.Add(b);
 			}
 		}
@@ -290,39 +448,11 @@ namespace Project1 {
 						color = Colors.Violet;
 					}
 					labels[pos.Row][pos.Column].Background = new SolidColorBrush(color);
+					labels[pos.Row][pos.Column].Content = SelectedPos.Distance(pos);
 				}
 			}
 			labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Black);
 		}
-        private void setguy(Position position) {
-			if (Game.GetCurrentPlayer().HasUnitLeftToPlace(lastButton.Content.ToString())) { 
-				Unit u = Game.CreateUnit(lastButton.Content.ToString());
-				u.Player = Game.GetCurrentPlayer();
-				if (Game.PlaceUnit(position,u)) {//if it was a legal placement of the unit					
-					UpdateSquare(position);
-					Label lastUnitCountLabel = (Label) lastButton.Tag;
-					int count = int.Parse(lastUnitCountLabel.Content.ToString());
-					lastUnitCountLabel.Content = count - 1;
-
-					if (Game.GetCurrentPlayer().HasAnyUnitsLeftToPlace()) {
-						return;
-					}
-					//if done placing					
-					Game.EndTurn();
-					UnitGrid.Children.Clear();
-					PlayerLabel.Content = Game.GetCurrentPlayer().Name;
-					UpdateAllSquares();
-					if (this.Game.IsInSetup) {
-						PopulateUnitPlacementGrid(Game.GetCurrentPlayer().UnitsToPlace.ToList());
-						lastButton = null;
-					} else {
-						EndTurnButton.IsEnabled = true;
-						PhaseLabel.Content = this.Game.Phase;
-						MainGrid.Children.Remove(UnitGridScroller);
-					}
-				}	
-			}
-        }
 		private void perfmove(Position position) {
 			bool succ = Game.Move(SelectedPos, position);
 			if (succ) {
@@ -337,7 +467,7 @@ namespace Project1 {
 		private void DisplayJumpOptions(Position position) {
 			List<Position> JumpOptions = Game.GetJumpablePos(position);
 			for (int i = 0; i < JumpOptions.Count; i++) {//positions you can jump
-				actionButtons.Add(CreateButton(45, 40, "Jump", JumpTerrain, grid, JumpOptions[i].Row, JumpOptions[i].Column));
+				actionButtons.Add(CreateButton(40, 35, "Jump", JumpTerrain, grid, JumpOptions[i].Row, JumpOptions[i].Column));
 			}
 		}
 		private void RemoveGuiOptions() {
@@ -373,9 +503,9 @@ namespace Project1 {
 					continue;
 				}
 				int cost = moves[i].Value;				
-				Color color = Colors.Violet;//nullish
+				Color color = Colors.Violet;//nullish shouldn't ever be this
 				if (cost == 0) {
-					color = Colors.White;
+					color = Colors.White;//don't hardcode thses
 				}else if (cost == 1) {
 					color = Colors.GreenYellow;
 				}else if (cost == 2) {
@@ -397,10 +527,10 @@ namespace Project1 {
 			List<Position> positionsattacked = positions[0];
 			List<Position> attackablepositions = positions[1];
 			for (int i = 0; i < positionsattacked.Count; i++) {//positions you attacked earlier this turn
-				actionButtons.Add(CreateButton(45, 40, "Cancel", CancelCharge, grid, positionsattacked[i].Row, positionsattacked[i].Column));
+				actionButtons.Add(CreateButton(40, 35, "Cancel", CancelCharge, grid, positionsattacked[i].Row, positionsattacked[i].Column));
 			}
 			for (int i = 0; i < attackablepositions.Count; i++) {//positions you can attack
-				actionButtons.Add(CreateButton(45, 40, "Attack", ChargeUnit, grid, attackablepositions[i].Row, attackablepositions[i].Column));
+				actionButtons.Add(CreateButton(40, 35, "Attack", ChargeUnit, grid, attackablepositions[i].Row, attackablepositions[i].Column));
 			}
 		}
 		private void ChargeUnit(object sender, RoutedEventArgs e) {
@@ -420,20 +550,19 @@ namespace Project1 {
 			DisplayTempConflicts();
 		}
 
-		private void UpdatePreview(Position position) {
-			Unit unitatpos = Game.GetUnitAtPos(position);
-			Namelabel.Content = unitatpos.Name;
-			Pointslabellbl.Content = unitatpos.Points;
-			Strengthlabellbl.Content = unitatpos.Strength;
-			Defenselabellbl.Content = unitatpos.Defense;
-			if (unitatpos == Config.NullUnit || unitatpos == null) {
+		private void UpdatePreview(Unit unit) {			
+			Namelabel.Content = unit.Name;
+			Pointslabellbl.Content = unit.GetPoints();
+			Strengthlabellbl.Content = unit.Strength;
+			Defenselabellbl.Content = unit.GetDefense();
+			if (unit == Config.NullUnit || unit == null) {
 				UnitPlayerLbl.Content = "None";
 			} else {
-				UnitPlayerLbl.Content = unitatpos.Player.Name;
+				UnitPlayerLbl.Content = unit.Player.Name;
 			}
 			SolidColorBrush color = new SolidColorBrush(Colors.Red);
 			string Conflictlbl = "In Conflict";//TODO don't hardcode this
-			if (!unitatpos.InConflict) {
+			if (!unit.InConflict) {
 				Conflictlbl = "Not In Conflict";
 				color = new SolidColorBrush(Colors.Green);
 			}
@@ -501,7 +630,7 @@ namespace Project1 {
 					Rectangle rect = new Rectangle();
 					{
 						rect.Stroke = new SolidColorBrush(Colors.Black);
-						rect.Margin = new Thickness(10, 20, 10, 20);						
+						rect.Margin = new Thickness(10, 15, 10, 15);
 					}
 					Position attackerpos = conflictItem.Value[j].Position;
 					
@@ -534,12 +663,12 @@ namespace Project1 {
 					Position pos = GetPosOfClickedCell();
 					if ((lastHover == null || !lastHover.Equals(pos)) && !SelectedPos.Equals(pos)) {//also want to see if i have a good shot on my target but its covered by button
 						lastHover = pos;
-						UpdateAllSquares();
+						UpdateAllSquares();//to remove last hover colors
 						ShowShot(pos);
 					}
 				}
 			}
-		}
+		}		
 		/////////////////////////////////////////////////////////////////
 	}
 }

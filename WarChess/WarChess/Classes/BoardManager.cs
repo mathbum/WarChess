@@ -24,6 +24,9 @@ namespace WarChess.Objects {
 		public bool PlaceUnit(Position position, Unit unit) {
 			return Board.PlaceUnit(position, unit);
 		}
+		public bool IsValidPlacement(Position position) {
+			return Board.IsValidPlacement(position);
+		}
 		public Unit GetUnitAtPos(Position position) {
 			return Board.GetUnitAtPos(position);
 		}

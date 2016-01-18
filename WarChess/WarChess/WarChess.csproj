@@ -65,7 +65,7 @@
     <Compile Include="Classes\BoardManager.cs" />
     <Compile Include="Classes\ConflictManager.cs" />
     <Compile Include="Objects\Board.cs" />
-    <Compile Include="Objects\Items\DefensiveItems.cs" />
+    <Compile Include="Objects\Items\DefensiveItem.cs" />
     <Compile Include="Objects\Items\HandWeapon.cs" />
     <Compile Include="Objects\Items\Item.cs" />
     <Compile Include="Objects\Items\RangedWeapon.cs" />
