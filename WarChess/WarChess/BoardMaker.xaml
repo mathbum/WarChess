@@ -13,16 +13,16 @@
         <ScrollViewer Margin="15,127,0,0" Width="150" Height="154" HorizontalAlignment="Left" VerticalAlignment="Top">
             <Grid x:Name ="TerrainGrid" Background="Blue" PreviewMouseDown="SelectTerrain"/>
         </ScrollViewer>
-        <ScrollViewer Margin="179,10,19,48" HorizontalScrollBarVisibility="Auto">
+        <ScrollViewer Margin="179,10,19,48" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
             <Grid x:Name ="PlacementGrid" Background="Blue" PreviewMouseDown="OnPreviewMouseLeftButtonDown"/>
         </ScrollViewer>
         <GroupBox x:Name="groupBox" Header="Board" HorizontalAlignment="Left" Height="94" Margin="10,10,0,0" VerticalAlignment="Top" Width="155">
             <Grid>
-                <TextBox x:Name="BoardLoader" HorizontalAlignment="Left" Height="19" Margin="48,0,0,0" TextWrapping="Wrap" Text="BoardName" VerticalAlignment="Top" Width="85"/>
-                <TextBox x:Name="trows" HorizontalAlignment="Left" Height="23" Margin="48,24,0,0" TextWrapping="Wrap" Text="6" VerticalAlignment="Top" Width="32"/>
-                <TextBox x:Name="tcols" HorizontalAlignment="Left" Height="23" Margin="101,24,0,0" TextWrapping="Wrap" Text="5" VerticalAlignment="Top" Width="32"/>
                 <RadioButton x:Name="BoardLoaderRad" Content="RadioButton" HorizontalAlignment="Left" Height="13" Margin="10,3,0,0" VerticalAlignment="Top" Width="14"/>
                 <RadioButton x:Name="BlankBoardRad" Content="RadioButton" HorizontalAlignment="Left" Height="13" Margin="10,27,0,0" VerticalAlignment="Top" Width="14" IsChecked="True"/>
+                <TextBox x:Name="BoardLoader" HorizontalAlignment="Left" Height="19" Margin="48,1,0,0" TextWrapping="Wrap" Text="BoardName" VerticalAlignment="Top" Width="85" TextChanged="BoardLoaderTextChanged"/>
+                <TextBox x:Name="trows" HorizontalAlignment="Left" Height="23" Margin="48,24,0,0" TextWrapping="Wrap" Text="6" VerticalAlignment="Top" Width="32" TextChanged="BlankLoaderTextChanged" />
+                <TextBox x:Name="tcols" HorizontalAlignment="Left" Height="23" Margin="101,24,0,0" TextWrapping="Wrap" Text="5" VerticalAlignment="Top" Width="32" TextChanged="BlankLoaderTextChanged" />
                 <Button x:Name="Regenerate" Content="Regenerate" HorizontalAlignment="Left" Margin="30,55,0,0" Width="75" Click="Regenerate_Click"/>
             </Grid>
         </GroupBox>

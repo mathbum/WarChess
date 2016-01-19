@@ -244,19 +244,19 @@ namespace Project1 {
 			}
 
 			labels = new List<List<Label>>();
-            for (int i = 0; i < rows; i++) {
-                List<Label> rowlabels = new List<Label>();
-                for (int j = 0; j < cols; j++) {
-					Label positionLbl = CreateLabel(30, 25, i.ToString() + ", " + j.ToString(), grid, i, j);
+			for (int i = 0; i < rows; i++) {
+				List<Label> rowlabels = new List<Label>();
+				for (int j = 0; j < cols; j++) {
+					Label positionLbl = CreateLabel(30, 25, i.ToString() + ", " + j.ToString(), grid, i, j);//make this a textblock
 					positionLbl.VerticalAlignment = VerticalAlignment.Top;
 					positionLbl.HorizontalAlignment = HorizontalAlignment.Left;
 					Label l2 = CreateLabel(40, 25, "", grid, i, j);
-                    rowlabels.Add(l2);					
-                }
-                labels.Add(rowlabels);
-            }
+					rowlabels.Add(l2);
+				}
+				//labels.Add(rowlabels);
+			}
 			UpdateAllSquares();
-        }
+		}
 		public Button CreateButton(int width, int height, string content,RoutedEventHandler ClickEvent, Grid grid = null,int row = -1, int column = -1) {
 			Button b = new Button(); {			
 				b.Width = width;

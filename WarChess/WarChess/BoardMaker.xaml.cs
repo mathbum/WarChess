@@ -158,5 +158,13 @@ namespace Project1 {
 			Position position = GetPosOfClickedCell((Grid)sender);
 			lastSelected = position.Row;
 		}
+
+		private void BoardLoaderTextChanged(object sender, TextChangedEventArgs e) {
+			BoardLoaderRad.IsChecked = true;
+		}
+
+		private void BlankLoaderTextChanged(object sender, TextChangedEventArgs e) {
+			BlankBoardRad.IsChecked = true;
+		}
 	}
 }

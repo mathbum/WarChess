@@ -20,9 +20,9 @@
         <Grid HorizontalAlignment="Left" Height="137" Margin="12,45,0,0" VerticalAlignment="Top" Width="140" >
             <Border BorderBrush="Black" BorderThickness="1"/>
             <Label x:Name="Namelabel" Content="Name" Height="24" Width="50" Margin="36,0,34,108" HorizontalContentAlignment="Center"/>
-            <Label x:Name="Pointslabellbl" Content="0" Height="24" Margin="109,34,13,79" HorizontalContentAlignment="Center"/>
-            <Label x:Name="Strengthlabellbl" Content="0" Height="24" Margin="109,49,13,65" HorizontalContentAlignment="Center"/>
-            <Label x:Name="Defenselabellbl" Content="0" Margin="109,63,13,51" HorizontalContentAlignment="Center"/>
+            <Label x:Name="Pointslabellbl" Content="0" Height="24" Margin="109,34,10,79" HorizontalContentAlignment="Center"/>
+            <Label x:Name="Strengthlabellbl" Content="0" Height="24" Margin="109,49,10,64" HorizontalContentAlignment="Center"/>
+            <Label x:Name="Defenselabellbl" Content="0" Margin="109,63,10,51" HorizontalContentAlignment="Center"/>
             <Label Content="Points:" Margin="54,34,31,80"/>
             <Label Content="Strength:" Margin="54,49,31,65"/>
             <Label Content="Defense:" Margin="54,63,31,51"/>

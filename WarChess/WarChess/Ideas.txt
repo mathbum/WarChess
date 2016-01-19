@@ -10,10 +10,25 @@
 Scenario Builder:
 	Define the places that each player can place units
 
+
+
+
+Changes to the game:
+
 Allow Shelob to Spawn little units
 
 Redue Wound chart via formula
 
 Expand Max Defense and Strength
 
-add compatable items list to units. and items that they are holding (bows etc go into this)
+stamina based fighting (two handed weapons take more stamina)
+
+buff saraun and or nerf balrog
+
+maybe do some courage tests?
+
+add magic but new spells. 
+
+increase movement cost of archery, but buff it?
+
+make it hp based instead of wound based?
