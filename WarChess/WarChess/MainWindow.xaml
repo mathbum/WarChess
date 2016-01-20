@@ -6,14 +6,12 @@
         xmlns:local="clr-namespace:Project1"
         mc:Ignorable="d"
         Title="MainWindow" Height="621" Width="775.131">
-    <Grid x:Name="MainGrid">
+    <Grid x:Name="MainGrid" >
+        <!--VirtualizingStackPanel.VirtualizationMode="Recycling" VirtualizingStackPanel.IsVirtualizing="True"-->
         <ScrollViewer Margin="167,100,10,10" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <!--Height="258" Width="500"-->
+            <!--Height="400" Width="550"-->
             <Grid x:Name="grid" HorizontalAlignment="Left" VerticalAlignment="Top" PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown" MouseMove="grid_MouseMove"/>
         </ScrollViewer>
-        <!--<ScrollViewer x:Name="UnitGridScroller" Margin="12,197,0,0" Height="100" Width="130" VerticalScrollBarVisibility="Auto" VerticalAlignment="Top" HorizontalAlignment="Left">
-            <Grid x:Name ="UnitGrid" Background="Blue"/>
-        </ScrollViewer>-->
         <Button x:Name="EndTurnButton" Content="End Turn" HorizontalAlignment="Left" Height="46" Margin="28,435,0,0" VerticalAlignment="Top" Width="114" Click="EndTurn_Click" IsEnabled="False"/>
         <Label x:Name="PhaseLabel" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="186,27,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
         <Label x:Name="PlayerLabel" Content="Player1" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="392,27,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
@@ -31,11 +29,65 @@
         </Grid>
         <Label x:Name="PointLimitLbl" Content="1/10" HorizontalAlignment="Left" Height="28" Margin="38,12,0,0" VerticalAlignment="Top" Width="91"/>
 
-        <ComboBox x:Name="combo" Margin="12,335,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" SelectionChanged="combo_SelectionChanged" Height="30" Width="130">
-        </ComboBox>
-        <ListBox x:Name="EquipList" Margin="10,204,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" MouseDoubleClick="EquipmentList_MouseDoubleClick" Height="50" Width="71"/>
-        <ListBox x:Name="EquipableList" Margin="86,203,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" MouseDoubleClick="EquipmentList_MouseDoubleClick" Height="50" Width="76"/>
+        <ComboBox x:Name="combo" Margin="12,335,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" SelectionChanged="combo_SelectionChanged" Height="30" Width="130"/>
+        <ListBox x:Name="EquipList" Margin="10,203,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" MouseDoubleClick="EquipmentList_MouseDoubleClick" Height="50" Width="74"/>
+        <ListBox x:Name="EquipableList" Margin="86,203,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" MouseDoubleClick="EquipmentList_MouseDoubleClick" Height="50" Width="74"/>
         <Button x:Name="RemoveUnit" Content="Remove Unit" HorizontalAlignment="Left" Height="53" Margin="38,259,0,0" VerticalAlignment="Top" Width="79" Click="RemoveUnit_Click"/>
+        <!--<ScrollViewer Margin="217,97,82,51" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <VirtualizingStackPanel x:Name="trythis" VirtualizingPanel.IsVirtualizing="true" VirtualizingPanel.VirtualizationMode="Recycling" Orientation="Horizontal"/>
+        </ScrollViewer>-->
+        <!--<DockPanel x:Name="trythis" Margin="217,97,82,51">
+            <Button DockPanel.Dock="Top" Content="Fill" Click="Fill"/>
+            <ItemsControl ItemsSource="{Binding Items}"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                      ScrollViewer.CanContentScroll="true"
+                      ScrollViewer.PanningMode="Both">
+                <ItemsControl.Template>
+                    <ControlTemplate>
+                        <ScrollViewer>
+                            <ItemsPresenter/>
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </ItemsControl.Template>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <ItemsControl ItemsSource="{Binding Items}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Label Content="{Binding}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Rows="1"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel VirtualizationMode="Recycling" IsVirtualizing="True"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </DockPanel>-->
+        <!--<ItemsControl ItemsSource="{Binding ChildViewModels}" x:Name="trythis" Margin="217,97,82,51" VirtualizingPanel.IsVirtualizing="true" VirtualizingPanel.VirtualizationMode="Standard">
+            <ItemsControl.Template>
+                <ControlTemplate TargetType="{x:Type ItemsControl}">
+                    <ScrollViewer CanContentScroll="False">
+                        <ItemsPresenter/>
+                    </ScrollViewer>
+                </ControlTemplate>
+            </ItemsControl.Template>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    
+                    <VirtualizingStackPanel Orientation="Vertical" IsItemsHost="True"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>-->
         <!--<CheckBox x:Name="ShowshotcheckBox" Content="Show Shot" HorizontalAlignment="Left" Height="16" Margin="209,70,0,0" VerticalAlignment="Top" Width="102"/>-->
     </Grid>
 </Window>

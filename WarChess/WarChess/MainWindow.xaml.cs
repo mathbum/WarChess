@@ -213,23 +213,45 @@ namespace Project1 {
 		private void InitializeBoardGui(int rows, int cols) {
 			int width = 75;
 			int height = 75;
-            grid.Width = cols * width;
-            grid.Height = rows * height;
-            grid.HorizontalAlignment = HorizontalAlignment.Left;
-            grid.VerticalAlignment = VerticalAlignment.Top;
-            grid.ShowGridLines = true;
-            grid.Background = new SolidColorBrush(Colors.Blue);
+			grid.Width = cols * width;
+			grid.Height = rows * height;
+			grid.HorizontalAlignment = HorizontalAlignment.Left;
+			grid.VerticalAlignment = VerticalAlignment.Top;
+			grid.ShowGridLines = true;
+			grid.Background = new SolidColorBrush(Colors.Blue);
 
-            for (int i = 0; i < rows; i++) {
-                RowDefinition gridRow1 = new RowDefinition();
-                gridRow1.Height = new GridLength(height);
-                grid.RowDefinitions.Add(gridRow1);
-            }
-            for (int i = 0; i < cols; i++) {
-                ColumnDefinition gridCol1 = new ColumnDefinition();
-                gridCol1.Width = new GridLength(width);
-                grid.ColumnDefinitions.Add(gridCol1);
-            }
+			for (int i = 0; i < rows; i++) {
+				RowDefinition gridRow1 = new RowDefinition();
+				gridRow1.Height = new GridLength(height);
+				grid.RowDefinitions.Add(gridRow1);
+			}
+			for (int i = 0; i < cols; i++) {
+				ColumnDefinition gridCol1 = new ColumnDefinition();
+				gridCol1.Width = new GridLength(width);
+				grid.ColumnDefinitions.Add(gridCol1);
+			}
+
+
+
+			//for (int i = 0; i < rows; i++) {
+			//	VirtualizingStackPanel v = new VirtualizingStackPanel();
+			//	{
+			//		v.Orientation = Orientation.Vertical;
+			//		v.Width = 75;
+			//	}
+			//	for (int j = 0; j < cols; j++) {
+			//		Image image = new Image();
+			//		if (j == 3) {
+			//			image.Source = Config.TerrainObjs['u'].Image;
+			//		} else {
+			//			image.Source = Config.TerrainObjs[' '].Image;//TODO make this more eff?									
+			//		}
+			//		v.Children.Add(image);
+			//	}
+			//	trythis.Children.Add(v);
+			//}
+
+			//grid.Visibility = Visibility.Collapsed;
 			for (int i = 0; i < rows; i++) {
 				for (int j = 0; j < cols; j++) {
 					Image image = new Image();
@@ -247,13 +269,23 @@ namespace Project1 {
 			for (int i = 0; i < rows; i++) {
 				List<Label> rowlabels = new List<Label>();
 				for (int j = 0; j < cols; j++) {
-					Label positionLbl = CreateLabel(30, 25, i.ToString() + ", " + j.ToString(), grid, i, j);//make this a textblock
-					positionLbl.VerticalAlignment = VerticalAlignment.Top;
-					positionLbl.HorizontalAlignment = HorizontalAlignment.Left;
+					TextBlock positionTxtBlock = new TextBlock();
+					{
+						positionTxtBlock.Width = 30;
+						positionTxtBlock.Height = 25;
+						positionTxtBlock.Text = i.ToString() + ", " + j.ToString();
+						positionTxtBlock.Foreground = new SolidColorBrush(Colors.White);
+						positionTxtBlock.VerticalAlignment = VerticalAlignment.Top;
+						positionTxtBlock.HorizontalAlignment = HorizontalAlignment.Left;
+					}
+					Grid.SetRow(positionTxtBlock, i);
+					Grid.SetColumn(positionTxtBlock, j);
+					grid.Children.Add(positionTxtBlock);
+
 					Label l2 = CreateLabel(40, 25, "", grid, i, j);
 					rowlabels.Add(l2);
 				}
-				//labels.Add(rowlabels);
+				labels.Add(rowlabels);
 			}
 			UpdateAllSquares();
 		}
