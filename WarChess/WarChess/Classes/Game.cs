@@ -19,7 +19,7 @@ namespace WarChess.Objects {
 		private BoardManager BoardManager { get; set; }
 		public bool IsInSetup { get; private set; } = true;
 		//public enum Phases { Priority, Move, Shoot, Fight };//TODO need end phase? 	do i need priotiry phase?
-		public enum Phases { Move, Shoot };//TODO need end phase? 	do i need priotiry phase?
+		public enum Phases { Move, Shoot, Fight };//TODO need end phase? 	do i need priotiry phase?
 		private List<Player> Players;
 		public int pointLimit { get; set; }
 		private int PlayerTurnIndex = 0;
@@ -119,39 +119,134 @@ namespace WarChess.Objects {
 		public Dictionary<Unit,List<Unit>> GetConflicts() {
 			return conflictManager.TempConflicts;
 		}
-		private void ResolveAllConflicts() {
-			foreach (KeyValuePair<Unit, List<Unit>> ConflictsItem in conflictManager.Conflicts) {
-				ResolveConflict(ConflictsItem);
+		//private void ResolveAllConflicts() {
+		//	foreach (KeyValuePair<Unit, List<Unit>> ConflictsItem in conflictManager.Conflicts) {
+		//		ResolveConflict(ConflictsItem);
+		//	}
+		//	conflictManager.Conflicts.Clear();
+		//	conflictManager.TempConflicts.Clear();
+		//}
+        public List<Unit> GetConfictDefenders() {
+			//return list of all defending units so gui can put resolve button on them.
+			return conflictManager.TempConflicts.Keys.ToList();
+        }
+        KeyValuePair<Unit, List<Unit>> CurrentConflict;
+        int strikesLeft;
+        public List<Unit> ResolveStrike(Position position) {//determine if the defender wounded the chosen attacker. return remaining target units
+			Unit StruckUnit = BoardManager.GetUnitAtPos(position);
+            bool conflictOver = false;
+			int StruckUnitIndex = CurrentConflict.Value.IndexOf(StruckUnit);
+			if(StrikeUnit(StruckUnit, CurrentConflict.Key)) {
+				CurrentConflict.Value.RemoveAt(StruckUnitIndex);
+				conflictManager.TempConflicts[CurrentConflict.Key].Remove(StruckUnit);
+
+				if(CurrentConflict.Value.Count == 0) {//if all attackers are dead
+					conflictOver = true;
+				}				
 			}
-			conflictManager.Conflicts.Clear();
-			conflictManager.TempConflicts.Clear();
-		}
-		private void ResolveConflict(KeyValuePair<Unit,List<Unit>> Conflict) {
-			Unit struckUnit = null;//TODO multiple different units can be struck. Let user choose
-			List<Unit> StrickingUnits = new List<Unit>();
-			if (WereAttackersVictorious(Conflict)) {
-				struckUnit = Conflict.Key;
-				StrickingUnits = Conflict.Value;
-			} else {
-				struckUnit = Conflict.Value[0];//TODO let victorious parties do this
-				StrickingUnits.Add(Conflict.Key);
-			}
-			int WoundsInflicted = 0;
-			for (int i = 0; i < StrickingUnits.Count; i++) {//sums total wounds to that unit
-				if (Utils.ResolveStrike(StrickingUnits[i].Strength,struckUnit.GetDefense())) {
-					WoundsInflicted += 1;
+			strikesLeft--;
+			if(strikesLeft == 0) {//if you are out of attacks
+                conflictOver = true;
+            }
+            if(conflictOver) {
+				finalizeConflict();
+				return new List<Unit>();
+			}else {
+				return CurrentConflict.Value.ToList();
+			}			
+        }
+		private bool StrikeUnit(Unit StruckUnit, Unit Attacker) {//true if struck unit dies. false if he lived
+			if(Utils.ResolveStrike(Attacker.Strength, StruckUnit.GetDefense())) {
+				StruckUnit.Wounds--;
+				if(StruckUnit.Wounds == 0) {
+					if(CurrentConflict.Key == StruckUnit) {//if the unit that died was the conflict defender
+						finalizeConflict();
+					} 
+					BoardManager.KillUnit(StruckUnit);
+					return true;
 				}
 			}
-			struckUnit.Wounds -= WoundsInflicted;
-			if (struckUnit.Wounds < 1) {
-				BoardManager.KillUnit(struckUnit);
+			return false;
+		}
+		private void finalizeConflict() {
+			if(CurrentConflict.Key != null) {//if the conflict defender didn't die. (and if it is null then this is the second call to finalize conflict, first came from StrikeUnit, the second from ResolveConflict)
+				CurrentConflict.Key.InConflict = false;
+				for(int i = 0; i < CurrentConflict.Value.Count; i++) {
+					CurrentConflict.Value[i].InConflict = false;
+				}
+				conflictManager.TempConflicts.Remove(CurrentConflict.Key);
 			}
-
-			Conflict.Key.InConflict = false;
-			for(int i = 0; i < Conflict.Value.Count; i++) {
-				Conflict.Value[i].InConflict = false;
+			
+			PlayerTurnIndex = 0;//set player to the player with priority
+			if(conflictManager.TempConflicts.Count == 0) {
+				EndTurn();
 			}
 		}
+        public List<Unit> ResolveConflict(Position position) {
+			//given a defender determine who won the fight. If the attacker won then apply all wounds to the defenders
+			//if a defender won and is fighting more than one unit then return possible targets to be struck (and attacks you have) then set currentplayer 
+			Unit unit = BoardManager.GetUnitAtPos(position);
+            CurrentConflict = new KeyValuePair<Unit, List<Unit>>(unit, conflictManager.TempConflicts[unit]);
+			bool attackersVictorious = WereAttackersVictorious(CurrentConflict);
+			
+
+			if(CurrentConflict.Value.Count==1 || attackersVictorious) {//if there is only one target
+				List<Unit> strickingUnits = new List<Unit>();
+				Unit StruckUnit;
+				if(attackersVictorious) {
+					strickingUnits = CurrentConflict.Value.ToList();
+					StruckUnit = unit;
+				} else {//defender has won and there is only one target
+					strickingUnits.Add(unit);
+					StruckUnit = CurrentConflict.Value[0];
+				}
+				for(int i = 0; i < strickingUnits.Count; i++) {
+					Unit attacker = strickingUnits[i];
+					for(int j = 0; j < attacker.Attacks; j++) {
+						if(StrikeUnit(StruckUnit, attacker)) {//if unit alone died. (conflict defender or 1v1 fight)
+							break;//this only breaks to the next attacker
+						}
+					}
+				}
+				finalizeConflict();
+				return new List<Unit>();
+			} else {//defender won and has multiple target options
+				strikesLeft = unit.Attacks;
+				for(int i = 0; i < Players.Count; i++) {
+					if(Players[i].Name == unit.Player.Name) {
+						PlayerTurnIndex = i;
+						break;
+					}
+				}
+				return CurrentConflict.Value.ToList();
+			}
+		}
+  //      private void ResolveConflict(KeyValuePair<Unit,List<Unit>> Conflict) {
+		//	Unit struckUnit = null;//TODO multiple different units can be struck. Let user choose
+		//	List<Unit> StrickingUnits = new List<Unit>();
+		//	if (WereAttackersVictorious(Conflict)) {
+		//		struckUnit = Conflict.Key;
+		//		StrickingUnits = Conflict.Value;
+		//	} else {
+		//		struckUnit = Conflict.Value[0];//TODO let victorious parties do this
+		//		StrickingUnits.Add(Conflict.Key);
+		//	}
+		//	int WoundsInflicted = 0;
+		//	for (int i = 0; i < StrickingUnits.Count; i++) {//sums total wounds to that unit
+		//		if (Utils.ResolveStrike(StrickingUnits[i].Strength,struckUnit.GetDefense())) {
+		//			WoundsInflicted += 1;
+		//		}
+		//	}
+		//	struckUnit.Wounds -= WoundsInflicted;
+		//	if (struckUnit.Wounds < 1) {
+		//		BoardManager.KillUnit(struckUnit);
+		//	}
+
+  //          Conflict.Key.InConflict = false;
+  //          for(int i = 0; i < Conflict.Value.Count; i++) {
+  //              Conflict.Value[i].InConflict = false;
+  //          
+		//}
 		public List<Position> GetJumpablePos(Position position) {
 			return BoardManager.GetJumpablePos(position);
 		}
@@ -176,9 +271,8 @@ namespace WarChess.Objects {
 			if (roll < 6) {
 				Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " made the jump but cost all his movement");
 				unit.MovementLeft = 0;
-			} else {
-				Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " easily made the jump and cost no extra");
-				//if roll==6 then leave their movement amount alone
+			} else {//if roll==6 then leave their movement amount alone
+				Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " easily made the jump and cost no extra");				
 			}
 			return newPos;
 		}
@@ -288,7 +382,7 @@ namespace WarChess.Objects {
 				conflictManager.SolidifyCharges();
 				BoardManager.SolidifyMoves();
 			}
-			if (PlayerTurnIndex == Players.Count - 1) {
+			if (PlayerTurnIndex == Players.Count - 1 || Phase==Phases.Fight) {
 				if (IsInSetup) {//TODO probably don't need this code when setup is branched off
 					IsInSetup = false;
 					Phase = Phases.Move;
@@ -311,7 +405,9 @@ namespace WarChess.Objects {
 
 			if (vals[vals.Length-1] == Phase) {
 				Phase = vals[0];
-				ResolveAllConflicts();
+				conflictManager.Conflicts.Clear();
+				conflictManager.TempConflicts.Clear();
+				//ResolveAllConflicts();
 				return Phase;
 			}
 			for(int i = 0; i < vals.Length; i++) {

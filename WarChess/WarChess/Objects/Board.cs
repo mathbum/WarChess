@@ -114,7 +114,7 @@ namespace WarChess.Objects {
 					if (board[i][j].Unit == unit) {
 						SetUnit(new Position(i, j), Config.NullUnit);
 						//Trace.WriteLine("Killed: " + unit.Name + " at pos: " + i + ", " + j);
-						unit = null;//this a proper way to destroy the unit object?
+						//unit = null;//this a proper way to destroy the unit object?
 					}
 				}
 			}

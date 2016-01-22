@@ -5,34 +5,38 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Project1"
         mc:Ignorable="d"
-        Title="MainWindow" Height="621" Width="775.131">
+        Title="MainWindow" Height="621" Width="820.131">
     <Grid x:Name="MainGrid" >
         <!--VirtualizingStackPanel.VirtualizationMode="Recycling" VirtualizingStackPanel.IsVirtualizing="True"-->
-        <ScrollViewer Margin="167,100,10,10" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Margin="167,7,10,10" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
             <!--Height="400" Width="550"-->
             <Grid x:Name="grid" HorizontalAlignment="Left" VerticalAlignment="Top" PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown" MouseMove="grid_MouseMove"/>
         </ScrollViewer>
-        <Button x:Name="EndTurnButton" Content="End Turn" HorizontalAlignment="Left" Height="46" Margin="28,435,0,0" VerticalAlignment="Top" Width="114" Click="EndTurn_Click" IsEnabled="False"/>
-        <Label x:Name="PhaseLabel" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="186,27,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
-        <Label x:Name="PlayerLabel" Content="Player1" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="392,27,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
-        <Grid HorizontalAlignment="Left" Height="137" Margin="12,45,0,0" VerticalAlignment="Top" Width="140" >
+        <Button x:Name="EndTurnButton" Content="End Turn" HorizontalAlignment="Left" Height="46" Margin="31,508,0,0" VerticalAlignment="Top" Width="114" Click="EndTurn_Click" IsEnabled="False"/>
+        <Label x:Name="PhaseLabel" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="30" Margin="13,55,0,0" VerticalAlignment="Top" Width="125" FontSize="16" Content="Phase"/>
+        <Label x:Name="PlayerLabel" Content="Player1" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="20,7,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
+        <Grid HorizontalAlignment="Left" Height="137" Margin="15,118,0,0" VerticalAlignment="Top" Width="140" >
             <Border BorderBrush="Black" BorderThickness="1"/>
             <Label x:Name="Namelabel" Content="Name" Height="24" Width="50" Margin="36,0,34,108" HorizontalContentAlignment="Center"/>
             <Label x:Name="Pointslabellbl" Content="0" Height="24" Margin="109,34,10,79" HorizontalContentAlignment="Center"/>
             <Label x:Name="Strengthlabellbl" Content="0" Height="24" Margin="109,49,10,64" HorizontalContentAlignment="Center"/>
             <Label x:Name="Defenselabellbl" Content="0" Margin="109,63,10,51" HorizontalContentAlignment="Center"/>
-            <Label Content="Points:" Margin="54,34,31,80"/>
-            <Label Content="Strength:" Margin="54,49,31,65"/>
-            <Label Content="Defense:" Margin="54,63,31,51"/>
+            <TextBlock Text="Points:" Margin="54,34,31,80"/>
+            <TextBlock Text="Strength:" Margin="54,49,31,65"/>
+            <TextBlock Text="Defense:" Margin="54,63,31,51"/>
             <Label x:Name="UnitPlayerLbl" Content="Player" Margin="51,13,34,101"/>
-            <Label x:Name="InConflictLbl" Content="InConflict?" Margin="36,104,43,10"/>
+            <Label x:Name="InConflictLbl" Content="InConflict?" Margin="35,111,44,3"/>
+            <Label x:Name="Attackslbl" Content="0" Margin="109,78,10,36" HorizontalContentAlignment="Center"/>
+            <TextBlock Text="Attacks" Margin="54,78,31,36"/>
+            <Label x:Name="Woundslbl" Content="0" Margin="109,95,10,19" HorizontalContentAlignment="Center"/>
+            <TextBlock Text="Wounds" Margin="54,95,31,19"/>
         </Grid>
-        <Label x:Name="PointLimitLbl" Content="1/10" HorizontalAlignment="Left" Height="28" Margin="38,12,0,0" VerticalAlignment="Top" Width="91"/>
+        <Label x:Name="PointLimitLbl" Content="1/10" HorizontalAlignment="Left" Height="28" Margin="41,85,0,0" VerticalAlignment="Top" Width="91"/>
 
-        <ComboBox x:Name="combo" Margin="12,335,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" SelectionChanged="combo_SelectionChanged" Height="30" Width="130"/>
-        <ListBox x:Name="EquipList" Margin="10,203,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" MouseDoubleClick="EquipmentList_MouseDoubleClick" Height="50" Width="74"/>
-        <ListBox x:Name="EquipableList" Margin="86,203,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" MouseDoubleClick="EquipmentList_MouseDoubleClick" Height="50" Width="74"/>
-        <Button x:Name="RemoveUnit" Content="Remove Unit" HorizontalAlignment="Left" Height="53" Margin="38,259,0,0" VerticalAlignment="Top" Width="79" Click="RemoveUnit_Click"/>
+        <ComboBox x:Name="combo" Margin="15,408,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" SelectionChanged="combo_SelectionChanged" Height="30" Width="130"/>
+        <ListBox x:Name="EquipList" Margin="13,276,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" MouseDoubleClick="EquipmentList_MouseDoubleClick" Height="50" Width="74"/>
+        <ListBox x:Name="EquipableList" Margin="89,276,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" MouseDoubleClick="EquipmentList_MouseDoubleClick" Height="50" Width="74"/>
+        <Button x:Name="RemoveUnit" Content="Remove Unit" HorizontalAlignment="Left" Height="53" Margin="41,332,0,0" VerticalAlignment="Top" Width="79" Click="RemoveUnit_Click"/>
         <!--<ScrollViewer Margin="217,97,82,51" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <VirtualizingStackPanel x:Name="trythis" VirtualizingPanel.IsVirtualizing="true" VirtualizingPanel.VirtualizationMode="Recycling" Orientation="Horizontal"/>
         </ScrollViewer>-->

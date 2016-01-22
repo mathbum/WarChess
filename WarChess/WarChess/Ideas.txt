@@ -32,3 +32,16 @@ add magic but new spells.
 increase movement cost of archery, but buff it?
 
 make it hp based instead of wound based?
+
+spears/pikes have dice roll nerf but buff against calvary. pikes more specialized than spears. ?
+
+
+upcoming stuff:
+supporting a friendly unit
+saving a game
+making models other than 1x1
+allowing cost of diagnal moves
+data and UI virtualization (virtual canvas or virtualizationstackpanel grid) IList
+equiping and unequiping weapons
+redue gui unit selection system again (allow all units to be selectable)
+refactor fighting gui system

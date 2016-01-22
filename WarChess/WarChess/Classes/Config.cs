@@ -42,7 +42,8 @@ namespace WarChess.Objects {
 			{"Spear",new HandWeapon("Spear", false, 1) },
 			{"Pike", new HandWeapon("Pike", false, 2) },//is this a two handed weapon?
 			{"Elven Spear", new HandWeapon("Elven Spear", false, 1) },//this can be set to two handed or not, player choice
-			{"Armour",new DefensiveItem("Armour", false,1) }
+			{"Armour",new DefensiveItem("Armour", false,1) },
+			{"Heavy Armour",new DefensiveItem("Heavy Armour", false, 2) }
 			//lance
 		};
 		
@@ -51,7 +52,8 @@ namespace WarChess.Objects {
 			{ "Goblin", new UnitPair(new Unit("Goblin",4,1,1,Allegiance.Evil,2,5,3,4,1,1,0,0,0), new Dictionary<Item, int> {{ Items["Orc Bow"], 1}, {Items["Armour"], 1}} ) },
 			//{ "Orc", new Unit("Orc",7,1,1,Allegiance.Evil,3,3,5,1,1,0,0,0)},
 			{ "Warrior", new UnitPair(new Unit("Warrior",7,1,1,Allegiance.Good,3,4,3,5,1,1,0,0,0), new Dictionary<Item, int> {{Items["Orc Bow"],1}} ) },
-			{"Wood Elf", new UnitPair(new Unit("Wood Elf",7,1,1,Allegiance.Good,6,3,3,3,1,1,0,0,0), new Dictionary<Item, int> {{Items["Elven Bow"],2}, {Items["Armour"],2}} ) }
+			{"Wood Elf", new UnitPair(new Unit("Wood Elf",7,1,1,Allegiance.Good,6,3,3,3,1,1,0,0,0), new Dictionary<Item, int> {{Items["Elven Bow"],2}, {Items["Armour"],2}} ) },
+			{"Uruk-hai Captain", new UnitPair(new Unit("Uruk-hai Captain",25,1,1,Allegiance.Evil,5,4,5,5,2,2,0,0,0), new Dictionary<Item, int> { {Items["Orc Bow"], 5 }, { Items["Crossbow"],5}, {Items["Heavy Armour"],5}} ) }
 		};//TODO DO I HAVE AN EXTRA INSTANCE OF EVERY UNIT?
 		public static Unit NullUnit = new Unit("", 0, 0, 0, Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 		public static Dictionary<char, Terrain> TerrainObjs = new Dictionary<char, Terrain> {

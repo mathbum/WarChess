@@ -179,36 +179,11 @@ namespace Project1 {
 				PhaseLabel.Content = Game.Phase;
 				MainGrid.Children.Remove(combo);
 				MainGrid.Children.Remove(RemoveUnit);
-				EquipableList.MouseDoubleClick -= EquipmentList_MouseDoubleClick;//give it some ability to equip and unequip items
+				EquipableList.MouseDoubleClick -= EquipmentList_MouseDoubleClick;//TODO give it some ability to equip and unequip items
 				EquipList.MouseDoubleClick -= EquipmentList_MouseDoubleClick;
 				EndTurnButton.Content = "End Turn";				
 			}
 		}
-
-		//private void PopulateUnitPlacementGrid(List<KeyValuePair<string, int>> UnitCount) {
-		//	UnitGrid.Children.Clear();
-		//	UnitGrid.RowDefinitions.Clear();
-		//	UnitGrid.ColumnDefinitions.Clear();
-		//	int unitButtonWidth = 75;
-		//	int height = 25;
-		//	int labelWidth = 45;
-		//	ColumnDefinition gridCol = new ColumnDefinition();
-		//	gridCol.Width = new GridLength(unitButtonWidth);
-		//	UnitGrid.ColumnDefinitions.Add(gridCol);
-		//	ColumnDefinition gridCol1 = new ColumnDefinition();
-		//	gridCol1.Width = new GridLength(labelWidth);
-		//	UnitGrid.ColumnDefinitions.Add(gridCol1);
-		//	UnitGrid.Height = UnitCount.Count * height;
-		//	for (int i = 0; i < UnitCount.Count; i++) {
-		//		RowDefinition gridRow = new RowDefinition();
-		//		gridRow.Height = new GridLength(height);
-		//		UnitGrid.RowDefinitions.Add(gridRow);
-
-		//		Label l2 = CreateLabel(labelWidth, height, UnitCount[i].Value.ToString(), UnitGrid, i, 1);
-		//		Button b2 = CreateButton(unitButtonWidth, height, UnitCount[i].Key, dynClick, UnitGrid, i, 0);
-		//		b2.Tag = l2;
-		//	}
-		//      }
 
 		private void InitializeBoardGui(int rows, int cols) {
 			int width = 75;
@@ -395,7 +370,7 @@ namespace Project1 {
 				labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
 				if (Game.IsInSetup) {
 					SetupSelect(position, unit);
-				} else if (Game.Phase == Game.Phases.Move) {//based upon phase display gui options
+				} else if (Game.Phase == Game.Phases.Move) {//based upon phase, display gui options
 					DisplayGuiOptions();
 				} else if (Game.Phase == Game.Phases.Shoot) {
 					ShowShotOptions();
@@ -554,6 +529,69 @@ namespace Project1 {
 				labels[movePosition.Row][movePosition.Column].Background = new SolidColorBrush(color);
 			}
 		}
+		private int DisplayResolveOptions() {
+			List<Unit> defenders = Game.GetConfictDefenders();
+			for(int i = 0; i < defenders.Count; i++) {
+				Unit defender = defenders[i];
+				actionButtons.Add(CreateButton(40, 35, "Resolve", ResolveConflict, grid, defender.Position.Row, defender.Position.Column));
+			}
+			return defenders.Count;
+		}
+		private void ResolveConflict(object sender, RoutedEventArgs e) {
+			Button b = (Button)sender;
+			Position defendingPosition = new Position(Grid.GetRow(b), Grid.GetColumn(b));
+			List<Unit> Strikable = Game.ResolveConflict(defendingPosition);
+			if(Strikable.Count == 0) {//conflict autoresolved
+				ResetGui();
+				//PlayerLabel.Content = Game.GetCurrentPlayer().Name;//TODO this has duplicate code with endturn
+				//PhaseLabel.Content = Game.Phase;
+				//RemoveActionOptions();//this also updates all squares
+				//SelectedPos = null;
+				//DisplayTempConflicts();				
+				//if(Game.Phase == Game.Phases.Move) {
+				//	EndTurnButton.IsEnabled = true;
+				//	UpdateAllSquares();
+				//} else {
+				//	DisplayResolveOptions();
+				//}
+				//might be next round
+			} else{//defender has won and has to choose targets
+				RemoveActionOptions();
+				ShowStrikeOptions(Strikable);
+				//update current player, and updateallsquares
+				PlayerLabel.Content = Game.GetCurrentPlayer().Name;
+				UpdateAllSquares();
+			}
+		}
+		private void ShowStrikeOptions(List<Unit> possibleTargets) {
+			for(int i = 0; i < possibleTargets.Count; i++) {
+				Unit defender = possibleTargets[i];
+				actionButtons.Add(CreateButton(40, 35, "Strike", StrikeUnit, grid, defender.Position.Row, defender.Position.Column));
+			}
+		}
+		private void StrikeUnit(object sender, RoutedEventArgs e) {
+			Button b = (Button)sender;
+			Position defendingPosition = new Position(Grid.GetRow(b), Grid.GetColumn(b));
+			List<Unit> possibleTargets = Game.ResolveStrike(defendingPosition);
+			if(possibleTargets.Count==0) {//if the conflict is over				
+				ResetGui();
+				//PlayerLabel.Content = Game.GetCurrentPlayer().Name;//TODO this has duplicate code with endturn
+				//PhaseLabel.Content = Game.Phase;
+				//RemoveActionOptions();
+				//UpdateAllSquares();
+				//SelectedPos = null;
+				//DisplayTempConflicts();
+
+				//if(Game.Phase == Game.Phases.Move) {
+				//	EndTurnButton.IsEnabled = true;
+				//}
+			} else {
+				DisplayTempConflicts();
+				UpdateAllSquares();
+				RemoveActionOptions();
+				ShowStrikeOptions(possibleTargets);
+			}
+		}
 		private void RemoveActionOptions() {
 			for(int i = 0; i < actionButtons.Count; i++) {
 				grid.Children.Remove(actionButtons[i]);
@@ -593,6 +631,8 @@ namespace Project1 {
 			Pointslabellbl.Content = unit.GetPoints();
 			Strengthlabellbl.Content = unit.Strength;
 			Defenselabellbl.Content = unit.GetDefense();
+			Attackslbl.Content = unit.Attacks;
+			Woundslbl.Content = unit.Wounds;
 			if (unit == Config.NullUnit || unit == null) {
 				UnitPlayerLbl.Content = "None";
 			} else {
@@ -665,11 +705,26 @@ namespace Project1 {
 
 		private void EndTurn_Click(object sender, RoutedEventArgs e) {
 			Game.EndTurn();
+			ResetGui();
+		}
+		private void ResetGui() {
 			PlayerLabel.Content = Game.GetCurrentPlayer().Name;
-			PhaseLabel.Content = Game.Phase;
+			PhaseLabel.Content = Game.Phase;			
 			RemoveGuiOptions();//this also updates all squares
 			SelectedPos = null;
-			DisplayTempConflicts(); //TODO remove this. It is only here to remove tempconflicts at the begining of a new round
+			DisplayTempConflicts(); //TODO remove this. It is only here to remove tempconflicts at the begining of a new round			
+			if(Game.Phase == Game.Phases.Fight) {
+				if(DisplayResolveOptions() > 0) {//if there are conflicts
+					EndTurnButton.IsEnabled = false;
+				} else {
+					Game.EndTurn();//if there are no conflict then jump past fight phase
+					PlayerLabel.Content = Game.GetCurrentPlayer().Name;
+					PhaseLabel.Content = Game.Phase;
+					UpdateAllSquares();//in case priority changes				
+				}
+			} else {
+				EndTurnButton.IsEnabled = true;//this gets called more than necesarry
+			}
 		}
 
 		/// <summary>
