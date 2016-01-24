@@ -279,7 +279,7 @@ namespace WarChess.Objects {
 		public List<List<Position>> GetShotPathDetails(Position Shooter, Position Target) {
 			Unit ShootingUnit = BoardManager.GetUnitAtPos(Shooter);
 			if (!ShootingUnit.HasShot) {
-				if (ShotOptions.ContainsKey(Target)) {
+				if (ShotOptions.ContainsKey(Target)) {//somehow Shotoptions was null
 					return ShotOptions[Target];
 				}
 				return BoardManager.GetShotDetails(Shooter, Target);

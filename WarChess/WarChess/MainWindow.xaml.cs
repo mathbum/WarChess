@@ -62,45 +62,23 @@ namespace Project1 {
 				LastSelectedUnitName = combo.SelectedItem.ToString();
 			}
 		}
-		private void SetupSelect(Position position, Unit unit) {
-			if (unit == Config.NullUnit) {
-				if (!SetUnit(position)) {
-					return;
-				}
-				unit = unitsPlaced[position];
-			}else if (unit.Player != Game.GetCurrentPlayer()){
-				if (SelectedPos != null) {
-					labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-				}
-				RemoveUnit.IsEnabled = false;
-				SelectedPos = null;
-				return;
-			}
-			SelectedPos = position;
-			UpdateLeftPane(unit);
-			UpdateSquare(position, unit);
-			if (unit.Player == Game.GetCurrentPlayer()) {
-				RemoveUnit.IsEnabled = true;
-			}
-		}
 		private void RemoveUnit_Click(object sender, RoutedEventArgs e) {
-			Position pos = SelectedPos;//this is for the hack
-			UpdateSquare(SelectedPos, Config.NullUnit);
 			unitsPlaced.Remove(SelectedPos);
 			UpdatePoints();
-			DeselectUnit();
-			labels[pos.Row][pos.Column].Background = null;//this is a hack
+			deselectUnit();
 		}
 		private void EquipmentList_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
-			ListBox fromBox = (ListBox)sender;
-			ListBox toBox = EquipableList;
-			if (fromBox == EquipableList) {
-				toBox = EquipList;
+			if(unitsPlaced.ContainsKey(SelectedPos)) {//its actual your unit (that you placed this turn)
+				ListBox fromBox = (ListBox)sender;
+				ListBox toBox = EquipableList;
+				if(fromBox == EquipableList) {
+					toBox = EquipList;
+				}
+				Unit unit = unitsPlaced[SelectedPos];
+				SwitichItemStatus(fromBox, toBox, unit);
+				UpdatePreview(unit);
+				UpdatePoints();
 			}
-			Unit unit = unitsPlaced[SelectedPos];
-			SwitichItemStatus(fromBox, toBox, unit);
-			UpdatePreview(unit);
-			UpdatePoints();
 		}
 		private void SwitichItemStatus(ListBox fromBox, ListBox toBox, Unit unit) {
 			if (fromBox.SelectedIndex != -1) {
@@ -124,9 +102,8 @@ namespace Project1 {
 				displayPlacement();
 				UpdatePoints();
 				return true;
-			} else {
-				return false;
 			}
+			return false;			
 		}
 		private int CalculatePoints(List<Unit> units) {
 			int points = 0;
@@ -205,7 +182,6 @@ namespace Project1 {
 				gridCol1.Width = new GridLength(width);
 				grid.ColumnDefinitions.Add(gridCol1);
 			}
-
 
 
 			//for (int i = 0; i < rows; i++) {
@@ -330,106 +306,156 @@ namespace Project1 {
 			}
 			return new Position(row, col);
 		}
-		private void DeselectUnit() {
-			labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-			SelectedPos = null;
-			if (Game.IsInSetup) {
+		private void selectUnit(Unit unit) {
+			Position position = unit.Position;
+			SelectedPos = position;
+			UpdateLeftPane(unit);
+			labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
+			if(unit.Player == Game.GetCurrentPlayer()) {
+				if(Game.IsInSetup) {
+					if(unit.Player == Game.GetCurrentPlayer()) {
+						RemoveUnit.IsEnabled = true;
+					}
+				} else if(Game.Phase == Game.Phases.Move) {//based upon phase, display gui options
+					DisplayGuiOptions();
+				} else if(Game.Phase == Game.Phases.Shoot) {
+					ShowShotOptions();
+				}
+			}
+		}
+		private void deselectUnit() {
+			Unit unit = Game.GetUnitAtPos(SelectedPos);
+			if(Game.IsInSetup) {
 				RemoveUnit.IsEnabled = false;
-				SelectedPos = null;
-				EquipableList.Items.Clear();
-				EquipList.Items.Clear();
-			} else if (Game.Phase == Game.Phases.Move) {//based upon phase remove gui stuff
+				if(unitsPlaced.ContainsKey(SelectedPos)) {//if you are deselecting your unit
+					unit = unitsPlaced[SelectedPos];
+				}
+			} else if(Game.Phase == Game.Phases.Move) {//based upon phase remove gui stuff
 				RemoveGuiOptions();
-			} else if (Game.Phase == Game.Phases.Shoot) {
+			} else if(Game.Phase == Game.Phases.Shoot) {
 				RemoveGuiOptions();//shouldn't go through code to removemoveoptions
 			}
+			UpdateSquare(SelectedPos, unit, true);
+			SelectedPos = null;
 			UpdateLeftPane(Config.NullUnit);
 		}
-		private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {//TODO fix problem where clicking a button runs this and the button code
+		private void setUnit(Position position, Unit unit) {
+			if(!SetUnit(position)) {
+				return;//failed to place a unit
+			}
+			unit = unitsPlaced[position];
+			selectUnit(unit);
+		}		
+		private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
 			//if (e.ClickCount == 2) { // for double-click, remove this condition if only want single click
-
 			//MessageBox.Show(string.Format("Grid clicked at row {0}, column {1}", row, col));
 			// row and col now correspond Grid's RowDefinition and ColumnDefinition mouse was over when double clicked!
-			Position position = GetPosOfClickedCell();
-			Unit unit = Game.GetUnitAtPos(position);
-			if (Game.IsInSetup && unitsPlaced.ContainsKey(position)) {
-				unit = unitsPlaced[position];
-			} 			
-			if(SelectedPos!=null && SelectedPos.Equals(position)) {//deselectingunit
-				DeselectUnit();
-			}else if (unit.Player == Game.GetCurrentPlayer()) {//selecting your unit
-				if (SelectedPos != null) {//had a previous unit selected			
-					if (Game.IsInSetup) {//based upon phase remove gui options
-						labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-					} else {
-						DeselectUnit();
+			if(!(e.Source is Button)) {//only continue if the player didn't click a button
+				Position position = GetPosOfClickedCell();
+				Unit unit = Game.GetUnitAtPos(position);
+
+				if(Game.IsInSetup && unitsPlaced.ContainsKey(position)) {
+					unit = unitsPlaced[position];
+				}
+				if(SelectedPos == null) {//placing a unit or selecting a unit
+					if(Game.IsInSetup && unit == Config.NullUnit) {//placing unit
+						setUnit(position, unit);
+					} else if(unit != Config.NullUnit) {//selecting unit
+						selectUnit(unit);
+					}							
+				} else {//had someone else previously selected, deselecting/changing selection/perfmove
+					if(SelectedPos.Equals(position)) {//deslect unit
+						deselectUnit();
+					} else if(unit != Config.NullUnit) {//changing selection
+						deselectUnit();
+						selectUnit(unit);
+					} else {//clicked on null unit
+						if(Game.GetUnitAtPos(SelectedPos).Player == Game.GetCurrentPlayer() && Game.Phase == Game.Phases.Move && !Game.IsInSetup) {
+							perfmove(position);
+						}else if(Game.IsInSetup) {//placing unit
+							deselectUnit();
+							setUnit(position, unit);
+						}
 					}
 				}
-				UpdateLeftPane(unit);
-				SelectedPos = position;
-				labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
-				if (Game.IsInSetup) {
-					SetupSelect(position, unit);
-				} else if (Game.Phase == Game.Phases.Move) {//based upon phase, display gui options
-					DisplayGuiOptions();
-				} else if (Game.Phase == Game.Phases.Shoot) {
-					ShowShotOptions();
-				}				
-			} else if (SelectedPos != null && !Game.IsInSetup) {
-				if (Game.Phase == Game.Phases.Move) {//if in move phase then move unit
-					perfmove(position);
-					UpdateLeftPane(unit);
-				}			
-			}else if(Game.IsInSetup) {//if you are not deselecting, seleting another friendly unit or moveing a unit (only for movement phase) then you are placing a unit				
-				UpdateLeftPane(unit);
-				SetupSelect(position, unit);
-			}else if (unit != Config.NullUnit && unit.Player != Game.GetCurrentPlayer()) {
-				UpdateLeftPane(unit);
 			}
 
-
-
-			//TODO only show preview for non null units
-			//if (Game.IsInSetup) {
-			//	if (LastSelectedUnitName != null) {
-			//		HandleClick(position);
-			//	}
-			//} else {			
-			//	if (Game.Phase == Game.Phases.Move) {					
-			//		if (SelectedPos != null && SelectedPos.Equals(position)) {//deslecting
+			
+			//if(SelectedPos!=null && SelectedPos.Equals(position)) {//deselectingunit
+			//	DeselectUnit();
+			//}else if (unit.Player == Game.GetCurrentPlayer()) {//selecting your unit
+			//	if (SelectedPos != null) {//had a previous unit selected			
+			//		if (Game.IsInSetup) {//based upon phase remove gui options
 			//			labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-			//			SelectedPos = null;
-			//			RemoveGuiOptions();
-			//		} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
-			//			if (SelectedPos != null) {//previously had a different unit selected
-			//				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-			//				RemoveGuiOptions();
-			//			}
-			//			SelectedPos = position;
-			//			labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
-			//			DisplayGuiOptions();
-			//		} else if (SelectedPos != null) {//moving your unit
-			//			perfmove(position);//TODO trying to move a unit to a null position because it is supposed to be a jump.
-			//		}
-			//	} else if (Game.Phase == Game.Phases.Shoot) {
-			//		if (SelectedPos != null && SelectedPos.Equals(position)) { //descecting your unit
-			//			SelectedPos = null;
-			//			RemoveGuiOptions();//shouldn't go through code to removemoveoptions
-			//		} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
-			//			if (SelectedPos != null) {//previously had a different unit selected
-			//				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-			//				RemoveGuiOptions();
-			//			}
-			//			SelectedPos = position;
-			//			labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
-
-			//			ShowShotOptions();
-			//		} else if (SelectedPos != null) {
-			//			//UpdateAllSquares();//no
-			//			//ShowShot(position);
+			//		} else {
+			//			DeselectUnit();
 			//		}
 			//	}
+			//	UpdateLeftPane(unit);
+			//	SelectedPos = position;
+			//	labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
+			//	if (Game.IsInSetup) {
+			//		SetupSelect(position, unit);
+			//	} else if (Game.Phase == Game.Phases.Move) {//based upon phase, display gui options
+			//		DisplayGuiOptions();
+			//	} else if (Game.Phase == Game.Phases.Shoot) {
+			//		ShowShotOptions();
+			//	}				
+			//} else if (SelectedPos != null && !Game.IsInSetup) {
+			//	if (Game.Phase == Game.Phases.Move) {//if in move phase then move unit
+			//		perfmove(position);
+			//		UpdateLeftPane(unit);
+			//	}			
+			//}else if(Game.IsInSetup) {//if you are not deselecting, seleting another friendly unit or moveing a unit (only for movement phase) then you are placing a unit				
+			//	UpdateLeftPane(unit);
+			//	SetupSelect(position, unit);
+			//}else if (unit != Config.NullUnit && unit.Player != Game.GetCurrentPlayer()) {
+			//	UpdateLeftPane(unit);
 			//}
+
+
+
+			////TODO only show preview for non null units
+			////if (Game.IsInSetup) {
+			////	if (LastSelectedUnitName != null) {
+			////		HandleClick(position);
+			////	}
+			////} else {			
+			////	if (Game.Phase == Game.Phases.Move) {					
+			////		if (SelectedPos != null && SelectedPos.Equals(position)) {//deslecting
+			////			labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
+			////			SelectedPos = null;
+			////			RemoveGuiOptions();
+			////		} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
+			////			if (SelectedPos != null) {//previously had a different unit selected
+			////				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
+			////				RemoveGuiOptions();
+			////			}
+			////			SelectedPos = position;
+			////			labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
+			////			DisplayGuiOptions();
+			////		} else if (SelectedPos != null) {//moving your unit
+			////			perfmove(position);//TODO trying to move a unit to a null position because it is supposed to be a jump.
+			////		}
+			////	} else if (Game.Phase == Game.Phases.Shoot) {
+			////		if (SelectedPos != null && SelectedPos.Equals(position)) { //descecting your unit
+			////			SelectedPos = null;
+			////			RemoveGuiOptions();//shouldn't go through code to removemoveoptions
+			////		} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
+			////			if (SelectedPos != null) {//previously had a different unit selected
+			////				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
+			////				RemoveGuiOptions();
+			////			}
+			////			SelectedPos = position;
+			////			labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
+
+			////			ShowShotOptions();
+			////		} else if (SelectedPos != null) {
+			////			//UpdateAllSquares();//no
+			////			//ShowShot(position);
+			////		}
+			////	}
+			////}
 		}
 		private void ShowShotOptions() {
 			List<Position> ShotOptions = Game.GetShotOptions(SelectedPos);
@@ -443,8 +469,7 @@ namespace Project1 {
 			Button b = (Button)sender;
 			Position position = new Position(Grid.GetRow(b), Grid.GetColumn(b));
 			Game.Shoot(SelectedPos, position);
-			RemoveGuiOptions();//shouldn't go through code to removemoveoptions
-			labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
+			RemoveGuiOptions();//shouldn't go through code to removemoveoptions?			
 		}
 		private void ShowShot(Position Target) {
 			List<List<Position>> ShotPathDetails = Game.GetShotPathDetails(SelectedPos,Target);//should always be len 3, good shot pos, iffy shot pos, bad shot pos
@@ -464,17 +489,15 @@ namespace Project1 {
 					labels[pos.Row][pos.Column].Content = SelectedPos.Distance(pos);
 				}
 			}
-			labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Black);
 		}
 		private void perfmove(Position position) {
 			bool succ = Game.Move(SelectedPos, position);
 			if (succ) {
-				UpdateSquare(SelectedPos,Game.GetUnitAtPos(SelectedPos));
-				UpdateSquare(position, Game.GetUnitAtPos(position));
-				SelectedPos = position;
+				Unit unit = Game.GetUnitAtPos(position);
+				UpdateSquare(SelectedPos, Config.NullUnit, false);//because behind him must be a null unit
+				//UpdateSquare(position, Game.GetUnitAtPos(position), false);
 				RemoveGuiOptions();
-				DisplayGuiOptions();
-				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Black);
+				selectUnit(unit);
 			}
 		}
 		private void DisplayJumpOptions(Position position) {
@@ -498,12 +521,12 @@ namespace Project1 {
 			Button b = (Button)sender;
 			Position position = new Position(Grid.GetRow(b), Grid.GetColumn(b));
 			SelectedPos = Game.Jump(Game.GetUnitAtPos(SelectedPos),position);
+			RemoveGuiOptions();
 			if (SelectedPos != null) {
-				RemoveGuiOptions();
-				DisplayGuiOptions();
-			} else {//unit has died. currently he can't die here
-				RemoveGuiOptions();
-			}
+				selectUnit(Game.GetUnitAtPos(SelectedPos));
+				//DisplayGuiOptions();
+				//labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Black);
+			}//else unit has died
 		}
 		private void RemoveMoveOptions() {
 			UpdateAllSquares();
@@ -673,22 +696,18 @@ namespace Project1 {
 			UpdatePreview(unit);
 		}
 
-		private void UpdateSquare(Position position,Unit unit) {
+		private void UpdateSquare(Position position,Unit unit, bool IsDeselect) {
 			Label labelatpos = labels[position.Row][position.Column];
 			labelatpos.Content = unit.Name;
 
-			if(unit != Config.NullUnit) {
-				if (unit.Player == Game.GetCurrentPlayer()) {
-					if (SelectedPos!=null && SelectedPos == position) {
-						labelatpos.Background = new SolidColorBrush(Colors.Black);
-					} else {
-						labelatpos.Background = new SolidColorBrush(Colors.Green);
-					}
-				} else {
-					labelatpos.Background = new SolidColorBrush(Colors.Red);
-				}
-			} else {
+			if(unit == Config.NullUnit) {
 				labelatpos.Background = null;
+			} else if(SelectedPos != null && SelectedPos.Equals(position) && !IsDeselect) {
+				labelatpos.Background = new SolidColorBrush(Colors.Black);
+			}else if(unit.Player == Game.GetCurrentPlayer()) {
+				labelatpos.Background = new SolidColorBrush(Colors.Green);
+			} else {
+				labelatpos.Background = new SolidColorBrush(Colors.Red);
 			}
 		}
 
@@ -698,7 +717,7 @@ namespace Project1 {
 				position.Row = i;
 				for (int j = 0; j < labels[i].Count; j++) {
 					position.Column = j;
-					UpdateSquare(position, Game.GetUnitAtPos(position));
+					UpdateSquare(position, Game.GetUnitAtPos(position), false);
 				}
 			}
 		}
@@ -709,9 +728,9 @@ namespace Project1 {
 		}
 		private void ResetGui() {
 			PlayerLabel.Content = Game.GetCurrentPlayer().Name;
-			PhaseLabel.Content = Game.Phase;			
-			RemoveGuiOptions();//this also updates all squares
+			PhaseLabel.Content = Game.Phase;
 			SelectedPos = null;
+			RemoveGuiOptions();//this also updates all squares			
 			DisplayTempConflicts(); //TODO remove this. It is only here to remove tempconflicts at the begining of a new round			
 			if(Game.Phase == Game.Phases.Fight) {
 				if(DisplayResolveOptions() > 0) {//if there are conflicts

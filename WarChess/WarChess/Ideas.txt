@@ -45,3 +45,6 @@ data and UI virtualization (virtual canvas or virtualizationstackpanel grid) ILi
 equiping and unequiping weapons
 redue gui unit selection system again (allow all units to be selectable)
 refactor fighting gui system
+
+currently if you do'nt have a shot you can look at shot options but if you have already shot you can't lol
+if you fail a jump you can go back to your start position since it was cost 0.

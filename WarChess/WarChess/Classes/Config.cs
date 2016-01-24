@@ -34,9 +34,9 @@ namespace WarChess.Objects {
 			}
 		}
 		public static Dictionary<string, Item> Items = new Dictionary<string, Item> {
-			{"Orc Bow",new RangedWeapon("Orc Bow", 4, 2, .5) },
-			{"Elven Bow", new RangedWeapon("Elven Bow", 6 ,3, .5) },
-			{"Crossbow", new RangedWeapon("Crossbow", 4, 4, 1) },
+			{"Orc Bow",new RangedWeapon("Orc Bow", 9, 2, .5) },
+			{"Elven Bow", new RangedWeapon("Elven Bow", 12, 3, .5) },
+			{"Crossbow", new RangedWeapon("Crossbow", 9, 4, 1) },
 			{"Throwing Axe", new RangedWeapon("Throwing Axe", 2, 3, 0) },
 			{"Shield", new DefensiveItem("Shield", true, 1) },
 			{"Spear",new HandWeapon("Spear", false, 1) },
