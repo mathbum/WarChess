@@ -195,7 +195,7 @@ namespace WarChess.Objects {
 			Unit ShootingUnit = GetUnitAtPos(Shooter);
 			for (int i = 0; i < path.Count; i++) {
 				Square square = GetSquareAtPos(path[i]);
-				if (!square.Terrain.SeeThrough || (ShootingUnit.Allegiance == Config.Allegiance.Good && i!=0 && (square.Unit.Player == ShootingUnit.Player || square.Unit.InConflict))) {//TODO or you are a good unit shooing into a conflict an ally is in
+				if (!square.Terrain.SeeThrough || (ShootingUnit.Allegiance == Config.Allegiance.Good && ((i != 0 &&  square.Unit.Player == ShootingUnit.Player) || square.Unit.InConflict))) {//TODO or you are a good unit shooing into a conflict an ALLY IS IN
 					badPos.Add(path[i]);//if the terrain isn't see through, or if you are good and an ally unit is in way or someone in conflict
 				} else if ((!square.Terrain.IsStandable || (square.Unit != Config.NullUnit && !path[i].Equals(Target)) || (ShootingUnit.Allegiance==Config.Allegiance.Evil && square.Unit.InConflict)) && i != 0) {
 					objInWayPos.Add(path[i]);//if terrain is in way, or a unit is in way. (either enemy unit or you are evil [we know this bc of previous statement]) and it isn't the square in front of you

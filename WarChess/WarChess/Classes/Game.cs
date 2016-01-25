@@ -18,16 +18,13 @@ namespace WarChess.Objects {
 		public Phases Phase { get; set; }
 		private BoardManager BoardManager { get; set; }
 		public bool IsInSetup { get; private set; } = true;
-		//public enum Phases { Priority, Move, Shoot, Fight };//TODO need end phase? 	do i need priotiry phase?
 		public enum Phases { Move, Shoot, Fight };//TODO need end phase? 	do i need priotiry phase?
 		private List<Player> Players;
 		public int pointLimit { get; set; }
 		private int PlayerTurnIndex = 0;
 		private ConflictManager conflictManager = new ConflictManager();
 		private List<KeyValuePair<Position, int>> CurrentMoveOptions;
-		//private List<List<Position>> CurrentShotPathDetails;
 		private Dictionary<Position, List<List<Position>>> ShotOptions;
-
 
 		public bool PlaceUnit(Position position,Unit unit) {
 			return BoardManager.PlaceUnit(position, unit);
@@ -119,15 +116,7 @@ namespace WarChess.Objects {
 		public Dictionary<Unit,List<Unit>> GetConflicts() {
 			return conflictManager.TempConflicts;
 		}
-		//private void ResolveAllConflicts() {
-		//	foreach (KeyValuePair<Unit, List<Unit>> ConflictsItem in conflictManager.Conflicts) {
-		//		ResolveConflict(ConflictsItem);
-		//	}
-		//	conflictManager.Conflicts.Clear();
-		//	conflictManager.TempConflicts.Clear();
-		//}
-        public List<Unit> GetConfictDefenders() {
-			//return list of all defending units so gui can put resolve button on them.
+        public List<Unit> GetConfictDefenders() {   //return list of all defending units so gui can put resolve button on them.		
 			return conflictManager.TempConflicts.Keys.ToList();
         }
         KeyValuePair<Unit, List<Unit>> CurrentConflict;
@@ -221,32 +210,6 @@ namespace WarChess.Objects {
 				return CurrentConflict.Value.ToList();
 			}
 		}
-  //      private void ResolveConflict(KeyValuePair<Unit,List<Unit>> Conflict) {
-		//	Unit struckUnit = null;//TODO multiple different units can be struck. Let user choose
-		//	List<Unit> StrickingUnits = new List<Unit>();
-		//	if (WereAttackersVictorious(Conflict)) {
-		//		struckUnit = Conflict.Key;
-		//		StrickingUnits = Conflict.Value;
-		//	} else {
-		//		struckUnit = Conflict.Value[0];//TODO let victorious parties do this
-		//		StrickingUnits.Add(Conflict.Key);
-		//	}
-		//	int WoundsInflicted = 0;
-		//	for (int i = 0; i < StrickingUnits.Count; i++) {//sums total wounds to that unit
-		//		if (Utils.ResolveStrike(StrickingUnits[i].Strength,struckUnit.GetDefense())) {
-		//			WoundsInflicted += 1;
-		//		}
-		//	}
-		//	struckUnit.Wounds -= WoundsInflicted;
-		//	if (struckUnit.Wounds < 1) {
-		//		BoardManager.KillUnit(struckUnit);
-		//	}
-
-  //          Conflict.Key.InConflict = false;
-  //          for(int i = 0; i < Conflict.Value.Count; i++) {
-  //              Conflict.Value[i].InConflict = false;
-  //          
-		//}
 		public List<Position> GetJumpablePos(Position position) {
 			return BoardManager.GetJumpablePos(position);
 		}
@@ -255,6 +218,7 @@ namespace WarChess.Objects {
 			
 			if (roll == 1) {
 				Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " failed to make his jump");
+				BoardManager.SolidifyMoveForUnit(unit);
 				unit.MovementLeft = 0;
 				return unit.Position;
 				//BoardManager.KillUnit(unit);//jump can wound if they jump a gap or something far
@@ -281,10 +245,9 @@ namespace WarChess.Objects {
 			if (!ShootingUnit.HasShot) {
 				if (ShotOptions.ContainsKey(Target)) {//somehow Shotoptions was null
 					return ShotOptions[Target];
-				}
-				return BoardManager.GetShotDetails(Shooter, Target);
+				}				
 			}
-			return new List<List<Position>>();
+			return BoardManager.GetShotDetails(Shooter, Target);
 		}//whenever gui wants to update shot details just send them the dict values
 		public List<Position> GetShotOptions(Position Shooter) {
 			Unit unit = BoardManager.GetUnitAtPos(Shooter);			

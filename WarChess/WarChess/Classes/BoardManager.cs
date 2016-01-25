@@ -49,6 +49,13 @@ namespace WarChess.Objects {
 		public void KillUnit(Unit unit) {
 			Board.KillUnit(unit);
 		}
+		public void SolidifyMoveForUnit(Unit unit) {
+			Position currentPosition = unit.Position;
+			if(Moves.ContainsKey(currentPosition)) {				
+				unit.MovementLeft -= Moves[currentPosition].Value;
+				Moves.Remove(currentPosition);
+			}
+		}
 		public void SolidifyMoves() {
 			foreach (KeyValuePair<Position, KeyValuePair<Position, int>> move in Moves) {
 				Unit unit = Board.GetUnitAtPos(move.Key);
@@ -117,7 +124,7 @@ namespace WarChess.Objects {
 				int row = surrpos[i].Row;
 				int col = surrpos[i].Column;
 				Square newSquare = board.GetSquareAtPos(surrpos[i]);
-				if (!newSquare.Terrain.IsStandable || (newSquare.Unit != Config.NullUnit && newSquare.Unit.Player != unit.Player)) {
+				if (!newSquare.Terrain.IsStandable || (newSquare.Unit != Config.NullUnit && (newSquare.Unit.InConflict || newSquare.Unit.Player != unit.Player))) {
 					continue;
 				}
 				int newCost = currentCost + newSquare.Terrain.Speed;
