@@ -379,83 +379,6 @@ namespace Project1 {
 					}
 				}
 			}
-
-			
-			//if(SelectedPos!=null && SelectedPos.Equals(position)) {//deselectingunit
-			//	DeselectUnit();
-			//}else if (unit.Player == Game.GetCurrentPlayer()) {//selecting your unit
-			//	if (SelectedPos != null) {//had a previous unit selected			
-			//		if (Game.IsInSetup) {//based upon phase remove gui options
-			//			labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-			//		} else {
-			//			DeselectUnit();
-			//		}
-			//	}
-			//	UpdateLeftPane(unit);
-			//	SelectedPos = position;
-			//	labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
-			//	if (Game.IsInSetup) {
-			//		SetupSelect(position, unit);
-			//	} else if (Game.Phase == Game.Phases.Move) {//based upon phase, display gui options
-			//		DisplayGuiOptions();
-			//	} else if (Game.Phase == Game.Phases.Shoot) {
-			//		ShowShotOptions();
-			//	}				
-			//} else if (SelectedPos != null && !Game.IsInSetup) {
-			//	if (Game.Phase == Game.Phases.Move) {//if in move phase then move unit
-			//		perfmove(position);
-			//		UpdateLeftPane(unit);
-			//	}			
-			//}else if(Game.IsInSetup) {//if you are not deselecting, seleting another friendly unit or moveing a unit (only for movement phase) then you are placing a unit				
-			//	UpdateLeftPane(unit);
-			//	SetupSelect(position, unit);
-			//}else if (unit != Config.NullUnit && unit.Player != Game.GetCurrentPlayer()) {
-			//	UpdateLeftPane(unit);
-			//}
-
-
-
-			////TODO only show preview for non null units
-			////if (Game.IsInSetup) {
-			////	if (LastSelectedUnitName != null) {
-			////		HandleClick(position);
-			////	}
-			////} else {			
-			////	if (Game.Phase == Game.Phases.Move) {					
-			////		if (SelectedPos != null && SelectedPos.Equals(position)) {//deslecting
-			////			labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-			////			SelectedPos = null;
-			////			RemoveGuiOptions();
-			////		} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
-			////			if (SelectedPos != null) {//previously had a different unit selected
-			////				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-			////				RemoveGuiOptions();
-			////			}
-			////			SelectedPos = position;
-			////			labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
-			////			DisplayGuiOptions();
-			////		} else if (SelectedPos != null) {//moving your unit
-			////			perfmove(position);//TODO trying to move a unit to a null position because it is supposed to be a jump.
-			////		}
-			////	} else if (Game.Phase == Game.Phases.Shoot) {
-			////		if (SelectedPos != null && SelectedPos.Equals(position)) { //descecting your unit
-			////			SelectedPos = null;
-			////			RemoveGuiOptions();//shouldn't go through code to removemoveoptions
-			////		} else if (Game.GetUnitAtPos(position).Player == Game.GetCurrentPlayer()) {//selecting your unit
-			////			if (SelectedPos != null) {//previously had a different unit selected
-			////				labels[SelectedPos.Row][SelectedPos.Column].Background = new SolidColorBrush(Colors.Green);
-			////				RemoveGuiOptions();
-			////			}
-			////			SelectedPos = position;
-			////			labels[position.Row][position.Column].Background = new SolidColorBrush(Colors.Black);
-
-			////			ShowShotOptions();
-			////		} else if (SelectedPos != null) {
-			////			//UpdateAllSquares();//no
-			////			//ShowShot(position);
-			////		}
-			////	}
-			////}
 		}
 		private void ShowShotOptions() {
 			List<Position> ShotOptions = Game.GetShotOptions(SelectedPos);
@@ -469,7 +392,8 @@ namespace Project1 {
 			Button b = (Button)sender;
 			Position position = new Position(Grid.GetRow(b), Grid.GetColumn(b));
 			Game.Shoot(SelectedPos, position);
-			RemoveGuiOptions();//shouldn't go through code to removemoveoptions?			
+			RemoveGuiOptions();//shouldn't go through code to removemoveoptions?
+			DisplayTempConflicts();
 		}
 		private void ShowShot(Position Target) {
 			List<List<Position>> ShotPathDetails = Game.GetShotPathDetails(SelectedPos,Target);//should always be len 3, good shot pos, iffy shot pos, bad shot pos
@@ -566,22 +490,9 @@ namespace Project1 {
 			List<Unit> Strikable = Game.ResolveConflict(defendingPosition);
 			if(Strikable.Count == 0) {//conflict autoresolved
 				ResetGui();
-				//PlayerLabel.Content = Game.GetCurrentPlayer().Name;//TODO this has duplicate code with endturn
-				//PhaseLabel.Content = Game.Phase;
-				//RemoveActionOptions();//this also updates all squares
-				//SelectedPos = null;
-				//DisplayTempConflicts();				
-				//if(Game.Phase == Game.Phases.Move) {
-				//	EndTurnButton.IsEnabled = true;
-				//	UpdateAllSquares();
-				//} else {
-				//	DisplayResolveOptions();
-				//}
-				//might be next round
 			} else{//defender has won and has to choose targets
 				RemoveActionOptions();
 				ShowStrikeOptions(Strikable);
-				//update current player, and updateallsquares
 				PlayerLabel.Content = Game.GetCurrentPlayer().Name;
 				UpdateAllSquares();
 			}
@@ -598,16 +509,6 @@ namespace Project1 {
 			List<Unit> possibleTargets = Game.ResolveStrike(defendingPosition);
 			if(possibleTargets.Count==0) {//if the conflict is over				
 				ResetGui();
-				//PlayerLabel.Content = Game.GetCurrentPlayer().Name;//TODO this has duplicate code with endturn
-				//PhaseLabel.Content = Game.Phase;
-				//RemoveActionOptions();
-				//UpdateAllSquares();
-				//SelectedPos = null;
-				//DisplayTempConflicts();
-
-				//if(Game.Phase == Game.Phases.Move) {
-				//	EndTurnButton.IsEnabled = true;
-				//}
 			} else {
 				DisplayTempConflicts();
 				UpdateAllSquares();

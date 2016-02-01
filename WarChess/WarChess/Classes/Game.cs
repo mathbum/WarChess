@@ -125,7 +125,7 @@ namespace WarChess.Objects {
 			Unit StruckUnit = BoardManager.GetUnitAtPos(position);
             bool conflictOver = false;
 			int StruckUnitIndex = CurrentConflict.Value.IndexOf(StruckUnit);
-			if(StrikeUnit(StruckUnit, CurrentConflict.Key)) {
+			if(StrikeUnit(StruckUnit, CurrentConflict.Key, false)) {
 				CurrentConflict.Value.RemoveAt(StruckUnitIndex);
 				conflictManager.TempConflicts[CurrentConflict.Key].Remove(StruckUnit);
 
@@ -144,26 +144,32 @@ namespace WarChess.Objects {
 				return CurrentConflict.Value.ToList();
 			}			
         }
-		private bool StrikeUnit(Unit StruckUnit, Unit Attacker) {//true if struck unit dies. false if he lived
+		private bool StrikeUnit(Unit StruckUnit, Unit Attacker, bool alreadyStruck) {//true if struck unit dies. false if he lived
 			if(Utils.ResolveStrike(Attacker.Strength, StruckUnit.GetDefense())) {
 				StruckUnit.Wounds--;
+				Trace.WriteLine(StruckUnit.Player.Name + "'s " + StruckUnit.Name + " suffered a wound from " + Attacker.Player.Name + "'s " + Attacker.Name);
 				if(StruckUnit.Wounds == 0) {
 					if(CurrentConflict.Key == StruckUnit) {//if the unit that died was the conflict defender
 						finalizeConflict();
-					} 
+					}
 					BoardManager.KillUnit(StruckUnit);
 					return true;
 				}
+			}
+			if(BoardManager.isTrapped(StruckUnit) && !alreadyStruck) {
+				Trace.WriteLine(StruckUnit.Player.Name + "'s " + StruckUnit.Name + " is trapped so " + Attacker.Player.Name + "'s " + Attacker.Name+" will take double strikes");
+				return StrikeUnit(StruckUnit, Attacker, true);
 			}
 			return false;
 		}
 		private void finalizeConflict() {
 			if(CurrentConflict.Key != null) {//if the conflict defender didn't die. (and if it is null then this is the second call to finalize conflict, first came from StrikeUnit, the second from ResolveConflict)
+				BoardManager.PushbackUnits();
 				CurrentConflict.Key.InConflict = false;
 				for(int i = 0; i < CurrentConflict.Value.Count; i++) {
 					CurrentConflict.Value[i].InConflict = false;
 				}
-				conflictManager.TempConflicts.Remove(CurrentConflict.Key);
+				conflictManager.TempConflicts.Remove(CurrentConflict.Key);				
 			}
 			
 			PlayerTurnIndex = 0;//set player to the player with priority
@@ -177,7 +183,19 @@ namespace WarChess.Objects {
 			Unit unit = BoardManager.GetUnitAtPos(position);
             CurrentConflict = new KeyValuePair<Unit, List<Unit>>(unit, conflictManager.TempConflicts[unit]);
 			bool attackersVictorious = WereAttackersVictorious(CurrentConflict);
-			
+
+
+			List<Unit> defeatedUnits;
+			List<Unit> victoriousUnits;
+			if(attackersVictorious) {
+				defeatedUnits = new List<Unit>() { CurrentConflict.Key };
+				victoriousUnits = CurrentConflict.Value;
+			} else {
+				defeatedUnits = CurrentConflict.Value;
+				victoriousUnits = new List<Unit>() { CurrentConflict.Key };
+			}
+			BoardManager.GetPushBackMoves(defeatedUnits, victoriousUnits);
+
 
 			if(CurrentConflict.Value.Count==1 || attackersVictorious) {//if there is only one target
 				List<Unit> strickingUnits = new List<Unit>();
@@ -192,7 +210,7 @@ namespace WarChess.Objects {
 				for(int i = 0; i < strickingUnits.Count; i++) {
 					Unit attacker = strickingUnits[i];
 					for(int j = 0; j < attacker.Attacks; j++) {
-						if(StrikeUnit(StruckUnit, attacker)) {//if unit alone died. (conflict defender or 1v1 fight)
+						if(StrikeUnit(StruckUnit, attacker, false)) {//if unit alone died. (conflict defender or 1v1 fight)
 							break;//this only breaks to the next attacker
 						}
 					}
@@ -290,8 +308,10 @@ namespace WarChess.Objects {
 								Target = ObstructionPos[i];
 								break;
 							}else if (square.Unit.InConflict) {
-								//TODO deal with conflict
-								//set target based upon conflict.... this might be annoying
+								List<Unit> unitsInConflict = conflictManager.GetUnitsInTempConflict(BoardManager.GetUnitAtPos(Target));
+								int targetIndex = Utils.GenerateRandomInt(unitsInConflict.Count);
+								Target = unitsInConflict[targetIndex].Position;
+								break;
 							}
 						}
 					}
@@ -301,7 +321,10 @@ namespace WarChess.Objects {
 						Unit unit = BoardManager.GetUnitAtPos(Shooter);
 						Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " hit and wounded a unit (probably his target)");
 						if (struckUnit.Wounds < 1) {
-							BoardManager.KillUnit(struckUnit);							
+							BoardManager.KillUnit(struckUnit);
+							if(struckUnit.InConflict) {
+								conflictManager.ResolvePrematureDeath(struckUnit);
+							}
 						}
 					}else {
 						Unit unit = BoardManager.GetUnitAtPos(Shooter);
@@ -349,7 +372,6 @@ namespace WarChess.Objects {
 				if (IsInSetup) {//TODO probably don't need this code when setup is branched off
 					IsInSetup = false;
 					Phase = Phases.Move;
-					//Phase = Phases.Priority;
 				} else {
 					NextPhase();
 					if (this.Phase == Phases.Move) {//start of a new round
@@ -370,7 +392,6 @@ namespace WarChess.Objects {
 				Phase = vals[0];
 				conflictManager.Conflicts.Clear();
 				conflictManager.TempConflicts.Clear();
-				//ResolveAllConflicts();
 				return Phase;
 			}
 			for(int i = 0; i < vals.Length; i++) {
@@ -379,7 +400,6 @@ namespace WarChess.Objects {
 					return Phase;
 				}
 			}
-
 			throw new ArgumentException();
 			//THIS BETTER NEVER HAPPEN
 		}

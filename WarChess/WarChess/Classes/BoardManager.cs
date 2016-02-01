@@ -36,7 +36,6 @@ namespace WarChess.Objects {
 		public bool MoveUnit(Position originalPos, Position newPos, int cost) {
 			bool isValidMove = Board.MoveUnit(originalPos, newPos, cost);
 			if (isValidMove) {
-
 				if (Moves.ContainsKey(originalPos)) {
 					Moves[newPos] = new KeyValuePair<Position, int>(Moves[originalPos].Key, cost);
 					Moves.Remove(originalPos);
@@ -79,6 +78,70 @@ namespace WarChess.Objects {
 		}
 
 		//TODO can a unit charge when they jumped or climbed?
+		//move away from winner(s). set unit movability to 2 (temporarity, 1 for regular and 2 in case friendly is letting you pass) then find possilbe moves. take the move the smallest 
+		//distance away (more than 0) from original pos that another losing unit hasn't taken that is the furthest away from all of the attackers (at the same movement distance).
+		//then make all of the moves and return the moves to game so it can return it to gui
+		public bool isTrapped(Unit unit) {
+			int movementleft = unit.MovementLeft;
+			unit.MovementLeft = 2;//1 for regular and 2 in case friendly is letting you pass
+			unit.InConflict = false;
+			List<KeyValuePair<Position, int>> moveOptions = GetMoveablePos(unit);
+			if(moveOptions.Count == 1) {//only valid move it to the position the unit is in
+				return true;
+			} else {
+				return false;
+			}
+		}
+		public void GetPushBackMoves(List<Unit> defeatedUnits,List<Unit> attackingUnits) {			
+			for(int i = 0; i < defeatedUnits.Count; i++) {
+				Unit unit = defeatedUnits[i];
+				unit.MovementLeft = 3;//1 for regular and 3 in case friendly is letting you pass
+				unit.InConflict = false;
+				List<KeyValuePair<Position, int>> moveOptions = GetMoveablePos(unit);
+				Position pos = FindPushbackOption(moveOptions, attackingUnits);
+				if(pos != null) {
+					Moves[pos] = new KeyValuePair<Position, int>(unit.Position, 0);
+				}
+			}
+		}	
+		public void PushbackUnits() {
+			foreach(KeyValuePair<Position, KeyValuePair<Position, int>> move in Moves) {
+				Board.MoveUnit(move.Value.Key, move.Key, move.Value.Value);
+			}
+			Moves.Clear();
+		}
+		private Position FindPushbackOption(List<KeyValuePair<Position, int>> moveOptions, List<Unit> attackingUnits) {
+			int moveDist = -1;
+			double distFromAttackers = -1;
+			int index = -1;
+			for(int i = 0; i < moveOptions.Count; i++) {
+				KeyValuePair<Position, int> kvp = moveOptions[i];
+				if(kvp.Value != 0 && (kvp.Value<moveDist || moveDist == -1)) {
+					index = i;
+					moveDist = kvp.Value;
+					distFromAttackers = DistFromUnits(kvp.Key, attackingUnits);
+				} else if(kvp.Value == moveDist) {
+					double dist = DistFromUnits(kvp.Key, attackingUnits);
+					if(dist > distFromAttackers) {
+						index = i;
+						distFromAttackers = dist;
+						moveDist = kvp.Value;
+					}					
+				}
+			}
+			if(index == -1) {
+				return null;
+			} else {
+				return moveOptions[index].Key;
+			}
+		}
+		private double DistFromUnits(Position position, List<Unit> attackingUnits) {
+			double distance = 0;
+			for(int i = 0; i < attackingUnits.Count; i++){
+				distance += position.Distance(attackingUnits[i].Position);
+			}
+			return distance;
+		}
 
 		public List<KeyValuePair<Position, int>> GetMoveablePos(Unit unit) {
 			Position originalUnitPos = unit.Position;

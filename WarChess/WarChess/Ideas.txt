@@ -40,11 +40,15 @@ upcoming stuff:
 supporting a friendly unit
 saving a game
 making models other than 1x1
-allowing cost of diagnal moves
+allowing cost of diagnal moves?
 data and UI virtualization (virtual canvas or virtualizationstackpanel grid) IList
 equiping and unequiping weapons
-refactor fighting gui system
-finish shooting into combat
-move combat stuff from game to conflict manager?
-trapped units
+refactor fighting gui system. the reset function isn't a bad starter
+move combat stuff from game to conflict manager? move shoot function to conflictmanager?
 win conditions
+
+tactic trick where you avoid being ganged up upon if you have priority and higher fighing in two units. then you can double team someone and they can't break you off. 
+
+do we for any reason need to know movement left after unit's conflict is rosolved? what about heroic moves
+refactor trapping
+put currnet points ammount of screen

@@ -9,11 +9,61 @@ namespace WarChess.Objects {
 		//only way to have three players in same conflict is if A and B are in conflict then C attacks both. In everyother case C can either only attack one or he will branch off to a new conflict
 		//when victor is chosen the player can choose who he strikes (rolls for wounds). Different types of units or if unit is trapped.  
 		//what if A has super unit. So B,C,D all attack A (but don't want to attack eachother) in this case B,C,D should be victors together? (and only be able to attack A)
-		//TODO maybe can only break off if > fighting?
 
 		public Dictionary<Unit, List<Unit>> Conflicts { get; private set; } = new Dictionary<Unit, List<Unit>>();
 		private Dictionary<Unit, List<Unit>> Charges { get; set; } = new Dictionary<Unit, List<Unit>>();
 		public Dictionary<Unit, List<Unit>> TempConflicts { get; private set; } = new Dictionary<Unit, List<Unit>>();
+
+		public List<Unit> GetUnitsInTempConflict(Unit unit) {
+			List<Unit> units = new List<Unit>();
+			if(TempConflicts.ContainsKey(unit)) {
+				units.Add(unit);
+				units.AddRange(TempConflicts[unit]);
+			} else {
+				foreach(KeyValuePair<Unit, List<Unit>> kvp in TempConflicts) {
+					for(int i = 0; i < kvp.Value.Count; i++) {
+						if(kvp.Value[i] == unit) {
+							units.Add(kvp.Key);
+							units.AddRange(kvp.Value);
+							return units;
+						}
+					}
+				}
+			}
+			return units;
+		}
+		public void ResolvePrematureDeath(Unit unit) {
+			Unit ConflictKey = null;
+			if(TempConflicts.ContainsKey(unit)) {
+				List<Unit> units = TempConflicts[unit];
+				for(int i = 0; i < units.Count; i++) {
+					units[i].InConflict = false;
+				}
+				TempConflicts.Remove(unit);
+				//Conflicts.Remove(unit);
+				return;
+			} else {
+				foreach(KeyValuePair<Unit, List<Unit>> kvp in TempConflicts) {
+					for(int i = 0; i < kvp.Value.Count; i++) {
+						if(kvp.Value[i] == unit) {
+							if(kvp.Value.Count == 1) {//if its a 1v1
+								kvp.Key.InConflict = false;
+								ConflictKey = kvp.Key;								
+								break;
+							} else {
+								kvp.Value.Remove(unit);
+								//Conflicts[kvp.Key].Remove(unit);
+								return;
+							}
+						}
+					}
+				}
+			}
+			if(ConflictKey != null) {
+				TempConflicts.Remove(ConflictKey);
+				//Conflicts.Remove(ConflictKey);
+			}
+		}
 
 		public bool ChargesContainsKey(Unit unit) {
 			return Charges.ContainsKey(unit);
@@ -24,7 +74,7 @@ namespace WarChess.Objects {
 			}
 			return Charges[chargingUnit].Contains(defendingUnit);
 		}
-
+		
 		//you can charge a unit only if he is not on your team, you havent been sucessfully charged and one of the following:
 		//1) you aren't charing anyone else and he isn't being charged by someone who is charging multiple units
 		//2) you are alone in your charge (you aren't charging a unit with an ally) and he is not (in conflict or being charged)
