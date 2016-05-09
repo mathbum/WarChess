@@ -16,19 +16,19 @@
         <Label x:Name="PhaseLabel" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="30" Margin="13,55,0,0" VerticalAlignment="Top" Width="125" FontSize="16" Content="Phase"/>
         <Label x:Name="PlayerLabel" Content="Player1" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Height="43" Margin="20,7,0,0" VerticalAlignment="Top" Width="125" FontSize="16"/>
         <Grid HorizontalAlignment="Left" Height="137" Margin="15,118,0,0" VerticalAlignment="Top" Width="140" >
-            <Border BorderBrush="Black" BorderThickness="1"/>
+            <Border BorderBrush="Black" BorderThickness="1" Margin="0,0,-6,0"/>
             <Label x:Name="Namelabel" Content="Name" Height="24" Width="50" Margin="36,0,34,108" HorizontalContentAlignment="Center"/>
-            <Label x:Name="Pointslabellbl" Content="0" Height="24" Margin="109,34,10,79" HorizontalContentAlignment="Center"/>
-            <Label x:Name="Strengthlabellbl" Content="0" Height="24" Margin="109,49,10,64" HorizontalContentAlignment="Center"/>
-            <Label x:Name="Defenselabellbl" Content="0" Margin="109,63,10,51" HorizontalContentAlignment="Center"/>
+            <Label x:Name="Pointslabellbl" Content="0" Height="24" Margin="109,34,6,79" HorizontalContentAlignment="Center"/>
+            <Label x:Name="Strengthlabellbl" Content="0" Height="24" Margin="109,49,6,64" HorizontalContentAlignment="Center"/>
+            <Label x:Name="Defenselabellbl" Content="0" Margin="109,63,6,51" HorizontalContentAlignment="Center"/>
             <TextBlock Text="Points:" Margin="54,34,31,80"/>
             <TextBlock Text="Strength:" Margin="54,49,31,65"/>
             <TextBlock Text="Defense:" Margin="54,63,31,51"/>
             <Label x:Name="UnitPlayerLbl" Content="Player" Margin="51,13,34,101"/>
             <Label x:Name="InConflictLbl" Content="InConflict?" Margin="35,111,44,3"/>
-            <Label x:Name="Attackslbl" Content="0" Margin="109,78,10,36" HorizontalContentAlignment="Center"/>
+            <Label x:Name="Attackslbl" Content="0" Margin="109,78,6,36" HorizontalContentAlignment="Center"/>
             <TextBlock Text="Attacks" Margin="54,78,31,36"/>
-            <Label x:Name="Woundslbl" Content="0" Margin="109,95,10,19" HorizontalContentAlignment="Center"/>
+            <Label x:Name="Woundslbl" Content="0" Margin="109,95,6,19" HorizontalContentAlignment="Center"/>
             <TextBlock Text="Wounds" Margin="54,95,31,19"/>
         </Grid>
         <Label x:Name="PointLimitLbl" Content="1/10" HorizontalAlignment="Left" Height="28" Margin="41,85,0,0" VerticalAlignment="Top" Width="91"/>

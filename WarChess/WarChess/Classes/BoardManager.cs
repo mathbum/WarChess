@@ -62,9 +62,6 @@ namespace WarChess.Objects {
 			}
 			Moves.Clear();
 		}
-		public void ResetAllMoveability() {
-			Board.ResetUnitTempStats();
-		}
 		public Position Jump(Unit unit, Position position, int initCost) {
 			Moves.Remove(unit.Position);
 			return Board.Jump(unit, position, initCost);

@@ -46,21 +46,34 @@ namespace WarChess.Objects {
 			{"Heavy Armour",new DefensiveItem("Heavy Armour", false, 2) }
 			//lance
 		};
-		
-		//name,points,width,length,allegiance,fighting,shootingprofeciency,strength,defense,attacks,wounds,mights,wills,fates
+
+		//name,points,width,length,allegiance,fighting,shootingprofeciency,strength,defense,attacks,health,dexterity
 		public static Dictionary<string, UnitPair> Units = new Dictionary<string, UnitPair> {
-			{ "Goblin", new UnitPair(new Unit("Goblin",4,1,1,Allegiance.Evil,2,5,3,4,1,1,0,0,0), new Dictionary<Item, int> {{ Items["Orc Bow"], 1}, {Items["Armour"], 1}} ) },
+			{ "Goblin", new UnitPair(new Unit("Goblin",4,1,1,Allegiance.Evil,2,5,3,4,1,17,10), new Dictionary<Item, int> {{ Items["Orc Bow"], 1}, {Items["Armour"], 1}} ) },
 			//{ "Orc", new Unit("Orc",7,1,1,Allegiance.Evil,3,3,5,1,1,0,0,0)},
-			{ "Warrior", new UnitPair(new Unit("Warrior",7,1,1,Allegiance.Good,3,4,3,5,1,1,0,0,0), new Dictionary<Item, int> {{Items["Orc Bow"],1}, { Items["Shield"], 1 } } ) },
-			{"Wood Elf", new UnitPair(new Unit("Wood Elf",7,1,1,Allegiance.Good,6,3,3,3,1,1,0,0,0), new Dictionary<Item, int> {{Items["Elven Bow"],2}, {Items["Armour"],2}} ) },
-			{"Uruk-hai Captain", new UnitPair(new Unit("Uruk-hai Captain",25,1,1,Allegiance.Evil,5,4,5,5,2,2,0,0,0), new Dictionary<Item, int> { {Items["Orc Bow"], 5 }, { Items["Crossbow"],5}, {Items["Shield"],5}} ) },
-			{"Berserker", new UnitPair(new Unit("Berserker",15,1,1,Allegiance.Evil,4,7,4,6,2,1,0,0,0), new Dictionary<Item, int> { } ) }//Uruk-hai Berserker
-		};//TODO DO I HAVE AN EXTRA INSTANCE OF EVERY UNIT?
-		public static Unit NullUnit = new Unit("", 0, 0, 0, Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+			{"Warrior", new UnitPair(new Unit("Warrior",7,1,1,Allegiance.Good,3,4,3,5,1,35,8), new Dictionary<Item, int> {{Items["Orc Bow"],1}, { Items["Shield"], 1 } } ) },
+			{"Wood Elf", new UnitPair(new Unit("Wood Elf",7,1,1,Allegiance.Good,6,3,3,3,1,25,20), new Dictionary<Item, int> {{Items["Elven Bow"],2}, {Items["Armour"],2}} ) },
+			{"Uruk-hai Captain", new UnitPair(new Unit("Uruk-hai Captain",25,1,1,Allegiance.Evil,5,4,5,5,2,50,13), new Dictionary<Item, int> { {Items["Orc Bow"], 5 }, { Items["Crossbow"],5}, {Items["Shield"],5}} ) },
+			{"Berserker", new UnitPair(new Unit("Berserker",15,1,1,Allegiance.Evil,4,7,6,4,2,25,15), new Dictionary<Item, int> { } ) }//Uruk-hai Berserker
+		};
+		public static Unit NullUnit = new Unit("", 0, 0, 0, Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0);
+
+		////name,points,width,length,allegiance,fighting,shootingprofeciency,strength,defense,attacks,wounds,mights,wills,fates
+		//public static Dictionary<string, UnitPair> Units = new Dictionary<string, UnitPair> {
+		//	{ "Goblin", new UnitPair(new Unit("Goblin",4,1,1,Allegiance.Evil,2,5,3,4,1,1,0,0,0), new Dictionary<Item, int> {{ Items["Orc Bow"], 1}, {Items["Armour"], 1}} ) },
+		//	//{ "Orc", new Unit("Orc",7,1,1,Allegiance.Evil,3,3,5,1,1,0,0,0)},
+		//	{ "Warrior", new UnitPair(new Unit("Warrior",7,1,1,Allegiance.Good,3,4,3,5,1,1,0,0,0), new Dictionary<Item, int> {{Items["Orc Bow"],1}, { Items["Shield"], 1 } } ) },
+		//	{"Wood Elf", new UnitPair(new Unit("Wood Elf",7,1,1,Allegiance.Good,6,3,3,3,1,1,0,0,0), new Dictionary<Item, int> {{Items["Elven Bow"],2}, {Items["Armour"],2}} ) },
+		//	{"Uruk-hai Captain", new UnitPair(new Unit("Uruk-hai Captain",25,1,1,Allegiance.Evil,5,4,5,5,2,2,0,0,0), new Dictionary<Item, int> { {Items["Orc Bow"], 5 }, { Items["Crossbow"],5}, {Items["Shield"],5}} ) },
+		//	{"Berserker", new UnitPair(new Unit("Berserker",15,1,1,Allegiance.Evil,4,7,4,6,2,1,0,0,0), new Dictionary<Item, int> { } ) }//Uruk-hai Berserker
+		//};//TODO DO I HAVE AN EXTRA INSTANCE OF EVERY UNIT?
+		//public static Unit NullUnit = new Unit("", 0, 0, 0, Allegiance.Neutral, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
 		public static Dictionary<char, Terrain> TerrainObjs = new Dictionary<char, Terrain> {
 			{' ',new Terrain("Grass","grasss.png",true,true,false,1) },
 			{'u',new Terrain("Short Wall","ShortWalls.png",false,true,true,1) }
 		};//probably going to have to make this like nullunit so you can tell terrain types
+
 		//	public static List<List<int>> WoundChart = new List<List<int>>() {
 		//		//   DEFENSE         1   2   3   4   5   6   7   8   9  10
 		//			new List<int>(){ 4,  5,  5,  6,  6, 64, 65, 66, -1, -1}, /*1*/
@@ -75,19 +88,19 @@ namespace WarChess.Objects {
 		//    		new List<int>(){ 3,  3,  3,  3,  3,  3,  3,  3,  4,  4}	 /*10*/
 		//	};
 
-		public static List<List<double>> WoundChart = new List<List<double>>() {
-			//   DEFENSE               1     2      3      4      5      6      7      8      9      10
-				new List<double>(){ .5000, .3333, .3333, .1667, .1667, .0833, .0556, .0278, .0000, .0000}, /*1*/
-	/*S*/		new List<double>(){ .5000, .5000, .3333, .3333, .1667, .1667, .0833, .0556, .0278, .0000}, /*2*/
-	/*T*/		new List<double>(){ .6667, .5000, .5000, .3333, .3333, .1667, .1667, .0833, .0556, .0278}, /*3*/
-	/*R*/		new List<double>(){ .6667, .6667, .5000, .5000, .3333, .3333, .1667, .1667, .0833, .0556}, /*4*/
-	/*E*/		new List<double>(){ .6667, .6667, .6667, .5000, .5000, .3333, .3333, .1667, .1667, .0833}, /*5*/
-	/*N*/		new List<double>(){ .6667, .6667, .6667, .6667, .5000, .5000, .3333, .3333, .1667, .1667}, /*6*/
-	/*G*/		new List<double>(){ .6667, .6667, .6667, .6667, .6667, .5000, .5000, .3333, .3333, .1667}, /*7*/
-	/*T*/		new List<double>(){ .6667, .6667, .6667, .6667, .6667, .6667, .5000, .5000, .3333, .3333}, /*8*/
-	/*H*/    	new List<double>(){ .6667, .6667, .6667, .6667, .6667, .6667, .6667, .5000, .5000, .3333}, /*9*/
-	    		new List<double>(){ .6667, .6667, .6667, .6667, .6667, .6667, .6667, .6667, .5000, .5000}  /*10*/
-		};
+	//	public static List<List<double>> WoundChart = new List<List<double>>() {
+	//		//   DEFENSE               1     2      3      4      5      6      7      8      9      10
+	//			new List<double>(){ .5000, .3333, .3333, .1667, .1667, .0833, .0556, .0278, .0000, .0000}, /*1*/
+	///*S*/		new List<double>(){ .5000, .5000, .3333, .3333, .1667, .1667, .0833, .0556, .0278, .0000}, /*2*/
+	///*T*/		new List<double>(){ .6667, .5000, .5000, .3333, .3333, .1667, .1667, .0833, .0556, .0278}, /*3*/
+	///*R*/		new List<double>(){ .6667, .6667, .5000, .5000, .3333, .3333, .1667, .1667, .0833, .0556}, /*4*/
+	///*E*/		new List<double>(){ .6667, .6667, .6667, .5000, .5000, .3333, .3333, .1667, .1667, .0833}, /*5*/
+	///*N*/		new List<double>(){ .6667, .6667, .6667, .6667, .5000, .5000, .3333, .3333, .1667, .1667}, /*6*/
+	///*G*/		new List<double>(){ .6667, .6667, .6667, .6667, .6667, .5000, .5000, .3333, .3333, .1667}, /*7*/
+	///*T*/		new List<double>(){ .6667, .6667, .6667, .6667, .6667, .6667, .5000, .5000, .3333, .3333}, /*8*/
+	///*H*/    	new List<double>(){ .6667, .6667, .6667, .6667, .6667, .6667, .6667, .5000, .5000, .3333}, /*9*/
+	//    		new List<double>(){ .6667, .6667, .6667, .6667, .6667, .6667, .6667, .6667, .5000, .5000}  /*10*/
+	//	};
 		public static Dictionary<string, List<string>> Boards = new Dictionary<string, List<string>>() {//TODO maybe move this to files? this probably means all boards are loaded to memory
 			{"standard",new List<string>() {
 											"     ",

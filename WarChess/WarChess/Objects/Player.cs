@@ -9,8 +9,10 @@ namespace WarChess.Objects {
 		
 		public Player(string Name) {
 			this.Name = Name;
+
 		}
 		public string Name { get; private set; }
+		public List<Unit> Units { get; set; } = new List<Unit>();
 		//maybe give it a dict that has unitstoplace (give a unit obj instead of string)
 		//possibly socket etc..
 	}

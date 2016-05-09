@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarChess", "WarChess\WarChess.csproj", "{8119C3E6-132A-41E7-BC6E-B4EC5E459B77}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarChessConsoleApp", "WarChessConsoleApp\WarChessConsoleApp.csproj", "{159BA3B9-84C7-444E-9604-37711167ACFA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{8119C3E6-132A-41E7-BC6E-B4EC5E459B77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8119C3E6-132A-41E7-BC6E-B4EC5E459B77}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8119C3E6-132A-41E7-BC6E-B4EC5E459B77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{159BA3B9-84C7-444E-9604-37711167ACFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{159BA3B9-84C7-444E-9604-37711167ACFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{159BA3B9-84C7-444E-9604-37711167ACFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{159BA3B9-84C7-444E-9604-37711167ACFA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

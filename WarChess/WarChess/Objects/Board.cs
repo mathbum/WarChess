@@ -67,15 +67,6 @@ namespace WarChess.Objects {
 			}
 			return null;
 		}
-		public void ResetUnitTempStats() {
-			for(int i = 0; i < Rows; i++) {
-				for(int j=0;j< Columns; j++) {
-					Unit unit = GetUnitAtPos(new Position(i, j));
-					unit.MovementLeft = unit.MaxMoveDist;
-					unit.HasShot = false;
-				}
-			}
-		}
 		public Position Jump(Unit unit,Position position,int initCost) {//any validation?
 			Position nextPos = GetNextPosInDirection(unit.Position, position);
 			if (nextPos != null) {

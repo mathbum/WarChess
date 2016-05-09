@@ -394,6 +394,7 @@ namespace Project1 {
 			Game.Shoot(SelectedPos, position);
 			RemoveGuiOptions();//shouldn't go through code to removemoveoptions?
 			DisplayTempConflicts();
+			//updatepoints
 		}
 		private void ShowShot(Position Target) {
 			List<List<Position>> ShotPathDetails = Game.GetShotPathDetails(SelectedPos,Target);//should always be len 3, good shot pos, iffy shot pos, bad shot pos
@@ -496,6 +497,7 @@ namespace Project1 {
 				PlayerLabel.Content = Game.GetCurrentPlayer().Name;
 				UpdateAllSquares();
 			}
+			//updatepoints
 		}
 		private void ShowStrikeOptions(List<Unit> possibleTargets) {
 			for(int i = 0; i < possibleTargets.Count; i++) {
@@ -556,7 +558,8 @@ namespace Project1 {
 			Strengthlabellbl.Content = unit.Strength;
 			Defenselabellbl.Content = unit.GetDefense();
 			Attackslbl.Content = unit.Attacks;
-			Woundslbl.Content = unit.Wounds;
+			//Woundslbl.Content = unit.Wounds;
+			Woundslbl.Content = unit.Health;
 			if (unit == Config.NullUnit || unit == null) {
 				UnitPlayerLbl.Content = "None";
 			} else {
@@ -622,17 +625,22 @@ namespace Project1 {
 				}
 			}
 		}
-
+	
 		private void EndTurn_Click(object sender, RoutedEventArgs e) {
 			Game.EndTurn();
 			ResetGui();
+			Player Loser = Game.WhoLost();
+			if(Loser != null) {
+				PhaseLabel.Content = Loser.Name + "Lost";
+			}
 		}
 		private void ResetGui() {
 			PlayerLabel.Content = Game.GetCurrentPlayer().Name;
 			PhaseLabel.Content = Game.Phase;
 			SelectedPos = null;
 			RemoveGuiOptions();//this also updates all squares			
-			DisplayTempConflicts(); //TODO remove this. It is only here to remove tempconflicts at the begining of a new round			
+			DisplayTempConflicts(); //TODO remove this. It is only here to remove tempconflicts at the begining of a new round	
+			//updatepoints 		
 			if(Game.Phase == Game.Phases.Fight) {
 				if(DisplayResolveOptions() > 0) {//if there are conflicts
 					EndTurnButton.IsEnabled = false;

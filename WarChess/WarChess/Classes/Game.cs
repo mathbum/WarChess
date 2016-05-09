@@ -27,7 +27,11 @@ namespace WarChess.Objects {
 		private Dictionary<Position, List<List<Position>>> ShotOptions;
 
 		public bool PlaceUnit(Position position,Unit unit) {
-			return BoardManager.PlaceUnit(position, unit);
+			bool succ = BoardManager.PlaceUnit(position, unit);
+			if(succ) {
+				GetCurrentPlayer().Units.Add(unit);
+			}
+			return succ;
 		}
 		public int GetBoardRows() {
 			return BoardManager.GetRows();
@@ -59,11 +63,14 @@ namespace WarChess.Objects {
 			int Strength = tempUnit.Strength;
 			int Defense = tempUnit.BaseDefense;
 			int Attack = tempUnit.Attacks;
-			int Wounds = tempUnit.Wounds;
-			int Might = tempUnit.Might;
-			int Will = tempUnit.Will;
-			int Fate = tempUnit.Fate;
-			return new Unit(Name, BasePoints, Width, Length, Allegiance, Fighting, ShootingSkill, Strength, Defense, Attack, Wounds, Might, Will, Fate);
+			//int Wounds = tempUnit.Wounds;
+			//int Might = tempUnit.Might;
+			//int Will = tempUnit.Will;
+			//int Fate = tempUnit.Fate;
+			//return new Unit(Name, BasePoints, Width, Length, Allegiance, Fighting, ShootingSkill, Strength, Defense, Attack, Wounds, Might, Will, Fate);
+			int TotalHealth = tempUnit.TotalHealth;
+			int Dexterity = tempUnit.Dexterity;
+			return new Unit(Name, BasePoints, Width, Length, Allegiance, Fighting, ShootingSkill, Strength, Defense, Attack, TotalHealth, Dexterity);
 		}
 
 		public bool Move(Position originalPos, Position newPos) {
@@ -80,7 +87,10 @@ namespace WarChess.Objects {
 			CurrentMoveOptions = BoardManager.GetMoveablePos(BoardManager.GetUnitAtPos(position));
 			return CurrentMoveOptions;
 		}
-
+		private void KillUnit(Unit unit) {
+			GetCurrentPlayer().Units.Remove(unit);
+			BoardManager.KillUnit(unit);
+		}
 		//TODO memory useage?
 		//TODO maybe zoom level? maybe map like AOE?
 
@@ -145,23 +155,37 @@ namespace WarChess.Objects {
 			}			
         }
 		private bool StrikeUnit(Unit StruckUnit, Unit Attacker, bool alreadyStruck) {//true if struck unit dies. false if he lived
-			if(Utils.ResolveStrike(Attacker.Strength, StruckUnit.GetDefense())) {
-				StruckUnit.Wounds--;
-				Trace.WriteLine(StruckUnit.Player.Name + "'s " + StruckUnit.Name + " suffered a wound from " + Attacker.Player.Name + "'s " + Attacker.Name);
-				if(StruckUnit.Wounds == 0) {
-					if(CurrentConflict.Key == StruckUnit) {//if the unit that died was the conflict defender
-						finalizeConflict();
-					}
-					BoardManager.KillUnit(StruckUnit);
-					return true;
+			if(Utils.ResolveStrike(StruckUnit, Attacker)) {
+				if(CurrentConflict.Key == StruckUnit) {
+					finalizeConflict();
 				}
+				KillUnit(StruckUnit);
+				return true;
 			}
 			if(BoardManager.isTrapped(StruckUnit) && !alreadyStruck) {
-				Trace.WriteLine(StruckUnit.Player.Name + "'s " + StruckUnit.Name + " is trapped so " + Attacker.Player.Name + "'s " + Attacker.Name+" will take double strikes");
+				Trace.WriteLine(StruckUnit.Player.Name + "'s " + StruckUnit.Name + " is trapped so " + Attacker.Player.Name + "'s " + Attacker.Name + " will take double strikes");
 				return StrikeUnit(StruckUnit, Attacker, true);
 			}
 			return false;
 		}
+		//private bool StrikeUnit(Unit StruckUnit, Unit Attacker, bool alreadyStruck) {//true if struck unit dies. false if he lived
+		//	if(Utils.ResolveStrike(Attacker.Strength, StruckUnit.GetDefense())) {
+		//		StruckUnit.Wounds--;
+		//		Trace.WriteLine(StruckUnit.Player.Name + "'s " + StruckUnit.Name + " suffered a wound from " + Attacker.Player.Name + "'s " + Attacker.Name);
+		//		if(StruckUnit.Wounds == 0) {
+		//			if(CurrentConflict.Key == StruckUnit) {//if the unit that died was the conflict defender
+		//				finalizeConflict();
+		//			}
+		//			KillUnit(StruckUnit);
+		//			return true;
+		//		}
+		//	}
+		//	if(BoardManager.isTrapped(StruckUnit) && !alreadyStruck) {
+		//		Trace.WriteLine(StruckUnit.Player.Name + "'s " + StruckUnit.Name + " is trapped so " + Attacker.Player.Name + "'s " + Attacker.Name+" will take double strikes");
+		//		return StrikeUnit(StruckUnit, Attacker, true);
+		//	}
+		//	return false;
+		//}
 		private void finalizeConflict() {
 			if(CurrentConflict.Key != null) {//if the conflict defender didn't die. (and if it is null then this is the second call to finalize conflict, first came from StrikeUnit, the second from ResolveConflict)
 				BoardManager.PushbackUnits();
@@ -195,7 +219,6 @@ namespace WarChess.Objects {
 				victoriousUnits = new List<Unit>() { CurrentConflict.Key };
 			}
 			BoardManager.GetPushBackMoves(defeatedUnits, victoriousUnits);
-
 
 			if(CurrentConflict.Value.Count==1 || attackersVictorious) {//if there is only one target
 				List<Unit> strickingUnits = new List<Unit>();
@@ -239,7 +262,7 @@ namespace WarChess.Objects {
 				BoardManager.SolidifyMoveForUnit(unit);
 				unit.MovementLeft = 0;
 				return unit.Position;
-				//BoardManager.KillUnit(unit);//jump can wound if they jump a gap or something far
+				//KillUnit(unit);//jump can wound if they jump a gap or something far
 				//return null;
 			}
 			int initCost = 0;
@@ -285,29 +308,81 @@ namespace WarChess.Objects {
 			ShotOptions = new Dictionary<Position, List<List<Position>>>();
 			return ShotOptions.Keys.ToList();
 		}//when you select a unit in the shoot phase. get all shoot options. then store them in a dict. 
-		public void Shoot(Position Shooter,Position Target) {
+		 //public void Shoot(Position Shooter,Position Target) {
+		 //	List<List<Position>> ShotDetails = ShotOptions[Target];
+		 //	List<Position> PosPreventingShot = ShotDetails[2];
+		 //	Unit ShootingUnit = BoardManager.GetUnitAtPos(Shooter);
+		 //	RangedWeapon rangedItem = ShootingUnit.GetRangedWeapon();
+		 //	if (PosPreventingShot.Count == 0 && !ShootingUnit.HasShot && rangedItem!=null) {//ranged item should never be null
+		 //		int roll = Utils.RollD6(1)[0];				
+		 //		ShootingUnit.HasShot = true;
+		 //		if (roll >= ShootingUnit.ShootingSkill) {//shooter hit target
+		 //			List<Position> ObstructionPos = ShotDetails[1];
+		 //			for (int i = 0; i < ObstructionPos.Count; i++) {//TODO determine if you pass obsticule based upon shootingskill?
+		 //				//roll to see if you pass each object
+		 //				roll = Utils.RollD6(1)[0];
+		 //				if (roll <= 3) {//didn't pass obj
+		 //					Unit unit = BoardManager.GetUnitAtPos(Shooter);
+		 //					Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " missed his target, (but might still hit someone else acidentally)");
+		 //					Square square = BoardManager.GetSquareAtPos(ObstructionPos[i]);
+		 //					if (!square.Terrain.IsStandable) {
+		 //						return;								
+		 //					}else if (square.Unit != Config.NullUnit && !square.Unit.InConflict) {
+		 //						Target = ObstructionPos[i];
+		 //						break;
+		 //					}else if (square.Unit.InConflict) {
+		 //						List<Unit> unitsInConflict = conflictManager.GetUnitsInTempConflict(BoardManager.GetUnitAtPos(Target));
+		 //						int targetIndex = Utils.GenerateRandomInt(unitsInConflict.Count);
+		 //						Target = unitsInConflict[targetIndex].Position;
+		 //						break;
+		 //					}
+		 //				}
+		 //			}
+		 //			Unit struckUnit = BoardManager.GetUnitAtPos(Target);
+		 //			if (Utils.ResolveStrike(rangedItem.Strength, struckUnit.GetDefense())) {
+		 //				struckUnit.Wounds -= 1;
+		 //				Unit unit = BoardManager.GetUnitAtPos(Shooter);
+		 //				Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " hit and wounded a unit (probably his target)");
+		 //				if (struckUnit.Wounds < 1) {
+		 //					KillUnit(struckUnit);
+		 //					if(struckUnit.InConflict) {
+		 //						conflictManager.ResolvePrematureDeath(struckUnit);
+		 //					}
+		 //				}
+		 //			}else {
+		 //				Unit unit = BoardManager.GetUnitAtPos(Shooter);
+		 //				Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " hit a unit (probably his target) but didn't wound him");
+		 //			}
+		 //		} else {
+		 //			Unit unit = BoardManager.GetUnitAtPos(Shooter);
+		 //			Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " missed his target");
+		 //		}
+		 //	}
+		 //}
+		public void Shoot(Position Shooter, Position Target) {
+			//throw new NotImplementedException();
 			List<List<Position>> ShotDetails = ShotOptions[Target];
 			List<Position> PosPreventingShot = ShotDetails[2];
 			Unit ShootingUnit = BoardManager.GetUnitAtPos(Shooter);
 			RangedWeapon rangedItem = ShootingUnit.GetRangedWeapon();
-			if (PosPreventingShot.Count == 0 && !ShootingUnit.HasShot && rangedItem!=null) {//ranged item should never be null
-				int roll = Utils.RollD6(1)[0];				
+			if(PosPreventingShot.Count == 0 && !ShootingUnit.HasShot && rangedItem != null) {//ranged item should never be null
+				int roll = Utils.RollD6(1)[0];
 				ShootingUnit.HasShot = true;
-				if (roll >= ShootingUnit.ShootingSkill) {//shooter hit target
+				if(roll >= ShootingUnit.ShootingSkill) {//shooter hit target
 					List<Position> ObstructionPos = ShotDetails[1];
-					for (int i = 0; i < ObstructionPos.Count; i++) {//TODO determine if you pass obsticule based upon shootingskill?
-						//roll to see if you pass each object
+					for(int i = 0; i < ObstructionPos.Count; i++) {//TODO determine if you pass obsticule based upon shootingskill?
+																   //roll to see if you pass each object
 						roll = Utils.RollD6(1)[0];
-						if (roll <= 3) {//didn't pass obj
+						if(roll <= 3) {//didn't pass obj
 							Unit unit = BoardManager.GetUnitAtPos(Shooter);
 							Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " missed his target, (but might still hit someone else acidentally)");
 							Square square = BoardManager.GetSquareAtPos(ObstructionPos[i]);
-							if (!square.Terrain.IsStandable) {
-								return;								
-							}else if (square.Unit != Config.NullUnit && !square.Unit.InConflict) {
+							if(!square.Terrain.IsStandable) {
+								return;
+							} else if(square.Unit != Config.NullUnit && !square.Unit.InConflict) {
 								Target = ObstructionPos[i];
 								break;
-							}else if (square.Unit.InConflict) {
+							} else if(square.Unit.InConflict) {
 								List<Unit> unitsInConflict = conflictManager.GetUnitsInTempConflict(BoardManager.GetUnitAtPos(Target));
 								int targetIndex = Utils.GenerateRandomInt(unitsInConflict.Count);
 								Target = unitsInConflict[targetIndex].Position;
@@ -316,19 +391,11 @@ namespace WarChess.Objects {
 						}
 					}
 					Unit struckUnit = BoardManager.GetUnitAtPos(Target);
-					if (Utils.ResolveStrike(rangedItem.Strength, struckUnit.GetDefense())) {
-						struckUnit.Wounds -= 1;
-						Unit unit = BoardManager.GetUnitAtPos(Shooter);
-						Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " hit and wounded a unit (probably his target)");
-						if (struckUnit.Wounds < 1) {
-							BoardManager.KillUnit(struckUnit);
-							if(struckUnit.InConflict) {
-								conflictManager.ResolvePrematureDeath(struckUnit);
-							}
+					if(Utils.ResolveStrike(struckUnit, rangedItem.Strength, rangedItem.Strength)) {
+						KillUnit(struckUnit);
+						if(struckUnit.InConflict) {
+							conflictManager.ResolvePrematureDeath(struckUnit);
 						}
-					}else {
-						Unit unit = BoardManager.GetUnitAtPos(Shooter);
-						Trace.WriteLine(unit.Player.Name + "'s " + unit.Name + " hit a unit (probably his target) but didn't wound him");
 					}
 				} else {
 					Unit unit = BoardManager.GetUnitAtPos(Shooter);
@@ -374,15 +441,32 @@ namespace WarChess.Objects {
 					Phase = Phases.Move;
 				} else {
 					NextPhase();
-					if (this.Phase == Phases.Move) {//start of a new round
+					if (this.Phase == Phases.Move) {//start of a new round						
 						Players = Utils.PickPriority(Players);
-						BoardManager.ResetAllMoveability();
+						ResetUnitTempStats();
 					}
 				}
 				PlayerTurnIndex = 0;//same order as in setup phase. This is okay since everyone can set up at the same time
 			} else {
 				PlayerTurnIndex += 1 ;
 			}			
+		}
+		private void ResetUnitTempStats() {		
+			for(int i = 0; i < Players.Count; i++) {
+				for(int j = 0; j < Players[i].Units.Count; j++) {
+					Unit unit = Players[i].Units[j];
+					unit.MovementLeft = unit.MaxMoveDist;
+					unit.HasShot = false;
+				}
+			}
+		}
+		public Player WhoLost() {
+			for(int i = 0; i < Players.Count; i++) {
+				if(Players[i].Units.Count == 0) {
+					return Players[i];
+				}
+			}
+			return null;
 		}
 
 		private Phases NextPhase() {

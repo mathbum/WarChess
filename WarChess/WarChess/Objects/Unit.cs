@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WarChess.Objects.Items;
-
+//TODO make units directional, so you are more likely to win and do dmg if facing the enemy?
+//TODO make more than one unit able to deal dmg in a conflict
 namespace WarChess.Objects {
 	public class Unit {
-		public Unit(string Name, int BasePoints, int Width, int Length, Config.Allegiance Allegiance, int Fighting, int ShootingSkill, int Strength, int BaseDefense, int Attacks, int Wounds, int Might, int Will, int Fate) {
+		//public Unit(string Name, int BasePoints, int Width, int Length, Config.Allegiance Allegiance, int Fighting, int ShootingSkill, int Strength, int BaseDefense, int Attacks, int Wounds, int Might, int Will, int Fate) {
+		public Unit(string Name, int BasePoints, int Width, int Length, Config.Allegiance Allegiance, int Fighting, int ShootingSkill, int Strength, int BaseDefense, int Attacks, int TotalHealth, int Dexterity) {
 			this.Name = Name;
 			this.BasePoints = BasePoints;
 			this.Width = Width;
@@ -18,10 +20,13 @@ namespace WarChess.Objects {
 			this.Strength = Strength;
 			this.BaseDefense = BaseDefense;
 			this.Attacks = Attacks;
-			this.Wounds = Wounds;
-			this.Might = Might;
-			this.Will = Will;
-			this.Fate = Fate;
+			this.TotalHealth = TotalHealth;
+			this.Dexterity = Dexterity;
+			this.Health = TotalHealth;
+			//this.Wounds = Wounds;
+			//this.Might = Might;
+			//this.Will = Will;
+			//this.Fate = Fate;
 		}
 		 //TODO max move dist while shootable. put this to item
 		public Player Player { get; set; }
@@ -36,12 +41,17 @@ namespace WarChess.Objects {
 		public int BaseDefense;
 
 		public int Attacks { get; protected set; }
-		public int Wounds { get; set; }
+		//public int Wounds { get; set; }
+		//public int Might { get; set; }
+		//public int Will { get; set; }
+		//public int Fate { get; set; }
 		//TODO public int Courage { get; set; }
-		public int Might { get; set; }
-		public int Will { get; set; }
-		public int Fate { get; set; }
-
+		//TODO public int Energy {get;set;} //this will effect fighting ability strenghth and dexterity
+		//TODO public double Stamina {get;set;} //this effects rate that energy is recovered. rate of recovery is also determined by health and remaining stamina (or maybe % of stamina left)
+		public int Dexterity { get; protected set; }//this effects ability to dodge dmg, being trapped should reduce dexterity and increase energy cost. (armor will be able to deflect dmg as well as reduce dmg)
+		public int TotalHealth { get; protected set; }//this will effect fighting ability 
+		public int Health { get; set; }
+		
 		public int MaxMoveDist { get; private set; } = 3;
 		public bool InConflict { get; set; } = false;
 		public Position Position { get; set; }
